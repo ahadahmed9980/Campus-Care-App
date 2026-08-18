@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../main.dart'; // themeNotifier ko access karne ke liye
+import 'package:get/get.dart';
+import '../../controllers/auth_controller.dart';
+import '../../controllers/notification_controller.dart';
+import '../../controllers/theme_controller.dart';
 import '../../models/student_model.dart';
+import '../../routes/app_routes.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
-import 'edit_profile_screen.dart';
-import 'change_password_screen.dart';
-import 'notifications_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -46,12 +45,9 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     onPressed: student == null
                         ? null
-                        : () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    EditProfileScreen(student: student),
-                              ),
+                        : () => Get.toNamed(
+                              AppRoutes.editProfile,
+                              arguments: student,
                             ),
                   ),
                 ],
@@ -113,23 +109,13 @@ class ProfileScreen extends StatelessWidget {
                             icon: Icons.notifications_active_outlined,
                             label: 'Notifications', // 👈 Updated label here
                             isDark: isDark,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const NotificationsScreen(),
-                              ),
-                            ),
+                            onTap: () => Get.toNamed(AppRoutes.notifications),
                           ),
                           _ActionRow(
                             icon: Icons.lock_outline_rounded,
                             label: 'Change Password',
                             isDark: isDark,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const ChangePasswordScreen(),
-                              ),
-                            ),
+                            onTap: () => Get.toNamed(AppRoutes.changePassword),
                           ),
                           // Dark Mode & Push Notifications Toggles
                           _PreferencesToggles(isDark: isDark),
@@ -399,83 +385,34 @@ class _ActionRow extends StatelessWidget {
 }
 
 // ─── Preferences Toggles ──────────────────────────────────────
-class _PreferencesToggles extends StatefulWidget {
+class _PreferencesToggles extends StatelessWidget {
   final bool isDark;
   const _PreferencesToggles({required this.isDark});
 
   @override
-  State<_PreferencesToggles> createState() => _PreferencesTogglesState();
-}
-
-class _PreferencesTogglesState extends State<_PreferencesToggles> {
-  late bool _isDarkMode;
-  bool _pushNotifications = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _isDarkMode = widget.isDark;
-    _loadPreferences();
-  }
-
-  Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isDarkMode = prefs.getBool('isDarkMode') ?? widget.isDark;
-      _pushNotifications = prefs.getBool('push_notifications') ?? true;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildSwitchRow(
-          icon: Icons.dark_mode_outlined,
-          label: 'Dark Mode',
-          value: _isDarkMode,
-          isDark: widget.isDark,
-          onChanged: (val) async {
-            setState(() {
-              _isDarkMode = val;
-            });
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setBool('isDarkMode', val);
+    final themeController = ThemeController.to;
+    final notificationController = Get.find<NotificationController>();
 
-            // Dynamically update theme notifier for instant UI update across the app
-            themeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
-          },
-        ),
-        _buildSwitchRow(
-          icon: Icons.notifications_none_outlined,
-          label: 'Push Notifications',
-          value: _pushNotifications,
-          isDark: widget.isDark,
-          onChanged: (val) async {
-            setState(() {
-              _pushNotifications = val;
-            });
-
-            // Save preference locally
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setBool('push_notifications', val);
-
-            // Firebase Messaging integration for notifications toggle
-            if (val) {
-              NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
-                alert: true,
-                badge: true,
-                sound: true,
-              );
-              if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-                await FirebaseMessaging.instance.subscribeToTopic('all_students');
-              }
-            } else {
-              await FirebaseMessaging.instance.unsubscribeFromTopic('all_students');
-            }
-          },
-        ),
-      ],
+    return Obx(
+      () => Column(
+        children: [
+          _buildSwitchRow(
+            icon: Icons.dark_mode_outlined,
+            label: 'Dark Mode',
+            value: themeController.themeMode.value == ThemeMode.dark,
+            isDark: isDark,
+            onChanged: themeController.toggleTheme,
+          ),
+          _buildSwitchRow(
+            icon: Icons.notifications_none_outlined,
+            label: 'Push Notifications',
+            value: notificationController.isNotificationsEnabled.value,
+            isDark: isDark,
+            onChanged: notificationController.toggleNotifications,
+          ),
+        ],
+      ),
     );
   }
 
@@ -555,6 +492,8 @@ class _LogoutButton extends StatelessWidget {
   }
 
   void _confirmLogout(BuildContext context, bool isDark) {
+    final authController = Get.find<AuthController>();
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -586,7 +525,7 @@ class _LogoutButton extends StatelessWidget {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              await AuthService().logout();
+              await authController.logout();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,

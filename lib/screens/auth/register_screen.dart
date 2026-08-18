@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import '../../services/auth_service.dart';
+import 'package:get/get.dart';
+import '../../controllers/auth_controller.dart';
 import '../../theme/app_theme.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -11,6 +12,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _authController = Get.find<AuthController>();
   final _formKey = GlobalKey<FormState>();
 
   final _fullNameController = TextEditingController();
@@ -43,7 +45,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     '8th Semester',
   ];
 
-  bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -61,40 +62,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-
-    try {
-      await AuthService().registerStudent(
-        fullName: _fullNameController.text.trim(),
-        studentId: _studentIdController.text.trim(),
-        department: _selectedDepartment!,
-        semester: _selectedSemester!,
-        email: _emailController.text.trim(),
-        phone: _phoneController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account registered successfully! Please login.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    await _authController.registerStudent(
+      fullName: _fullNameController.text.trim(),
+      studentId: _studentIdController.text.trim(),
+      department: _selectedDepartment!,
+      semester: _selectedSemester!,
+      email: _emailController.text.trim(),
+      phone: _phoneController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
   }
 
   @override
@@ -310,24 +286,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 28),
 
                 // Submit Button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _handleRegister,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                Obx(
+                  () => ElevatedButton(
+                    onPressed: _authController.isLoading.value
+                        ? null
+                        : _handleRegister,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: _authController.isLoading.value
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Register Account',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Register Account',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                  ),
                 ),
                 const SizedBox(height: 20),
 
@@ -340,7 +323,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(color: isDark ? Colors.grey[400] : AppColors.textLight),
                     ),
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => Get.back(),
                       child: const Text(
                         'Login',
                         style: TextStyle(

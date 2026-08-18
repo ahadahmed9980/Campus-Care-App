@@ -1,7 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
-import 'auth_wrapper.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,11 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const AuthWrapper()),
-        );
-      }
+      Get.offNamed(AppRoutes.authWrapper);
     });
   }
 

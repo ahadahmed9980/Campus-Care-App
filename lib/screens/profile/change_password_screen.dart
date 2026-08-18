@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
+import 'package:get/get.dart';
+import '../../controllers/auth_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/shared_widgets.dart';
 
@@ -15,7 +16,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _currentCtrl = TextEditingController();
   final _newCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
-  bool _isLoading = false;
+  final _authController = Get.find<AuthController>();
 
   @override
   void dispose() {
@@ -28,21 +29,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Future<void> _change() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-    try {
-      await AuthService().changePassword(
-        currentPassword: _currentCtrl.text,
-        newPassword: _newCtrl.text,
-      );
-      if (mounted) {
-        showSuccessSnackBar(context, 'Password changed successfully!');
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) showErrorSnackBar(context, e.toString());
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    await _authController.changePassword(
+      currentPassword: _currentCtrl.text,
+      newPassword: _newCtrl.text,
+    );
   }
 
   @override
@@ -140,10 +130,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               const SizedBox(height: 28),
 
               // ── Submit Button ──
-              PrimaryButton(
-                label: 'Update Password',
-                onPressed: _change,
-                isLoading: _isLoading,
+              Obx(
+                () => PrimaryButton(
+                  label: 'Update Password',
+                  onPressed: _change,
+                  isLoading: _authController.isLoading.value,
+                ),
               ),
               const SizedBox(height: 40),
             ],

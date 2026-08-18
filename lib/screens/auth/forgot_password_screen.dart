@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
+import 'package:get/get.dart';
+import '../../controllers/auth_controller.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/shared_widgets.dart';
 
@@ -13,9 +14,8 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
-  bool _isLoading = false;
   bool _emailSent = false;
-  final _authService = AuthService();
+  final _authController = Get.find<AuthController>();
 
   @override
   void dispose() {
@@ -26,14 +26,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _sendReset() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
     try {
-      await _authService.sendPasswordReset(_emailCtrl.text.trim());
+      await _authController.sendPasswordReset(_emailCtrl.text.trim());
       if (mounted) setState(() => _emailSent = true);
     } catch (e) {
       if (mounted) showErrorSnackBar(context, e.toString());
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -55,7 +52,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Get.back(),
                   icon: Icon(
                     Icons.arrow_back,
                     color: isDark ? Colors.white : Colors.black,
@@ -130,11 +127,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 28),
 
-                PrimaryButton(
-                  label: 'Send Reset Link',
-                  onPressed: _sendReset,
-                  isLoading: _isLoading,
-                  icon: Icons.send_rounded,
+                Obx(
+                  () => PrimaryButton(
+                    label: 'Send Reset Link',
+                    onPressed: _sendReset,
+                    isLoading: _authController.isLoading.value,
+                    icon: Icons.send_rounded,
+                  ),
                 ),
               ] else ...[
                 // ── Success State ──
@@ -178,7 +177,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       const SizedBox(height: 40),
                       PrimaryButton(
                         label: 'Back to Login',
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => Get.back(),
                       ),
                       const SizedBox(height: 16),
                       TextButton(
