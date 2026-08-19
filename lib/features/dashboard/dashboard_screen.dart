@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
+import '../../controllers/home_controller.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_spacing.dart';
 import '../../core/utils/date_formatters.dart';
@@ -11,10 +12,8 @@ import '../../core/widgets/feedback_views.dart';
 import '../../data/models/campus_models.dart';
 import '../../data/repositories/campus_repositories.dart';
 import '../../routes/app_routes.dart';
-import '../requests/request_details_screen.dart';
 import '../requests/request_entry_type.dart';
 import '../requests/simple_request_list_screen.dart';
-import '../requests/submit_request_screen.dart';
 import 'dashboard_controller.dart';
 import 'widgets/dashboard_widgets.dart';
 
@@ -31,11 +30,11 @@ class DashboardScreen extends StatelessWidget {
     }
 
     return ChangeNotifierProvider(
-      create: (context) => DashboardController(
+      create: (_) => DashboardController(
         uid: uid,
-        userRepository: context.read<UserRepository>(),
-        requestRepository: context.read<RequestRepository>(),
-        announcementRepository: context.read<AnnouncementRepository>(),
+        userRepository: Get.find<UserRepository>(),
+        requestRepository: Get.find<RequestRepository>(),
+        announcementRepository: Get.find<AnnouncementRepository>(),
       )..start(),
       child: const _DashboardView(),
     );
@@ -163,15 +162,10 @@ class _DashboardView extends StatelessWidget {
         else
           LatestRequestCard(
             request: controller.latestRequest!,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => RequestDetailsScreen(
-                    requestId: controller.latestRequest!.id,
-                  ),
-                ),
-              );
-            },
+            onTap: () => Get.toNamed(
+              AppRoutes.requestDetails,
+              arguments: controller.latestRequest!.id,
+            ),
           ),
         const SizedBox(height: AppSpacing.xl),
         const _SectionTitle('Latest Announcement'),
@@ -182,19 +176,15 @@ class _DashboardView extends StatelessWidget {
   }
 
   void _openSubmit(BuildContext context, RequestEntryType type) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => SubmitRequestScreen(entryType: type),
-      ),
-    );
+    Get.toNamed(AppRoutes.submitRequest, arguments: type);
   }
 
   void _openMyRequests(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const SimpleRequestListScreen(),
-      ),
-    );
+    if (Get.isRegistered<HomeController>()) {
+      Get.find<HomeController>().changeTab(1);
+      return;
+    }
+    Get.to(() => const SimpleRequestListScreen());
   }
 }
 

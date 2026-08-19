@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
@@ -9,7 +10,7 @@ import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_text_field.dart';
 import '../../core/widgets/feedback_views.dart';
 import '../../data/repositories/campus_repositories.dart';
-import 'request_details_screen.dart';
+import '../../routes/app_routes.dart';
 import 'request_entry_type.dart';
 import 'submit_request_controller.dart';
 import 'widgets/image_attachment_box.dart';
@@ -30,10 +31,10 @@ class SubmitRequestScreen extends StatelessWidget {
     }
 
     return ChangeNotifierProvider(
-      create: (context) => SubmitRequestController(
+      create: (_) => SubmitRequestController(
         userId: uid,
-        requestRepository: context.read<RequestRepository>(),
-        categoryRepository: context.read<CategoryRepository>(),
+        requestRepository: Get.find<RequestRepository>(),
+        categoryRepository: Get.find<CategoryRepository>(),
       )..loadCategories(),
       child: _SubmitRequestView(entryType: entryType),
     );
@@ -54,7 +55,7 @@ class _SubmitRequestViewState extends State<_SubmitRequestView> {
 
   Future<void> _handlePop(SubmitRequestController controller) async {
     if (!controller.dirty) {
-      Navigator.of(context).pop();
+      Get.back();
       return;
     }
     final shouldLeave = await showDialog<bool>(
@@ -80,7 +81,7 @@ class _SubmitRequestViewState extends State<_SubmitRequestView> {
       ),
     );
     if (shouldLeave == true && mounted) {
-      Navigator.of(context).pop();
+      Get.back();
     }
   }
 
@@ -100,11 +101,7 @@ class _SubmitRequestViewState extends State<_SubmitRequestView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(widget.entryType.successMessage)),
     );
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => RequestDetailsScreen(requestId: requestId),
-      ),
-    );
+    Get.offNamed(AppRoutes.requestDetails, arguments: requestId);
   }
 
   @override

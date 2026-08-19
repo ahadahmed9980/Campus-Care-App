@@ -52,7 +52,7 @@ class DashboardController extends ChangeNotifier {
 
     try {
       user = await _userRepository.getStudent(uid);
-      departmentName =
+      departmentName = user?.departmentName ??
           await _userRepository.getDepartmentName(user?.departmentId);
       latestAnnouncement = await _announcementRepository.latestPublished();
       announcementCount = await _announcementRepository.publishedCount();

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_spacing.dart';
@@ -10,6 +10,7 @@ import '../../core/widgets/status_chip.dart';
 import '../../data/models/campus_models.dart';
 import '../../data/models/request_model.dart';
 import '../../data/repositories/campus_repositories.dart';
+import '../../routes/app_routes.dart';
 
 class RequestDetailsScreen extends StatelessWidget {
   const RequestDetailsScreen({super.key, required this.requestId});
@@ -21,7 +22,7 @@ class RequestDetailsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Request Details')),
       body: StreamBuilder<CampusRequest?>(
-        stream: context.read<RequestRepository>().watchRequest(requestId),
+        stream: Get.find<RequestRepository>().watchRequest(requestId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting &&
               !snapshot.hasData) {
@@ -30,10 +31,9 @@ class RequestDetailsScreen extends StatelessWidget {
           if (snapshot.hasError) {
             return ErrorView(
               message: 'Unable to load this request.',
-              onRetry: () => Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (_) => RequestDetailsScreen(requestId: requestId),
-                ),
+              onRetry: () => Get.offNamed(
+                AppRoutes.requestDetails,
+                arguments: requestId,
               ),
             );
           }
@@ -60,7 +60,7 @@ class _RequestDetailsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<RequestCategory>>(
-      future: context.read<CategoryRepository>().getActiveCategories(),
+      future: Get.find<CategoryRepository>().getActiveCategories(),
       builder: (context, categorySnapshot) {
         final categories = categorySnapshot.data ?? const <RequestCategory>[];
         final matching = categories.where((item) => item.id == request.categoryId);

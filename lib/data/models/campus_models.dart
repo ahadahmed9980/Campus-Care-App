@@ -9,6 +9,7 @@ class StudentUser {
     required this.studentId,
     required this.email,
     this.departmentId,
+    this.departmentName,
     this.semester,
     this.profileImageUrl,
     this.role = 'student',
@@ -20,10 +21,18 @@ class StudentUser {
   final String studentId;
   final String email;
   final String? departmentId;
+  final String? departmentName;
   final String? semester;
   final String? profileImageUrl;
   final String role;
   final bool isActive;
+
+  String get semesterLabel {
+    final value = semester?.trim() ?? '';
+    if (value.isEmpty || value == '—') return '—';
+    if (value.toLowerCase().contains('semester')) return value;
+    return 'Semester $value';
+  }
 
   String get firstName {
     if (fullName.trim().isEmpty) return 'Student';
@@ -38,15 +47,26 @@ class StudentUser {
   }
 
   factory StudentUser.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data() ?? <String, dynamic>{};
+    return StudentUser.fromMap(doc.id, doc.data() ?? <String, dynamic>{});
+  }
+
+  factory StudentUser.fromMap(String id, Map<String, dynamic> data) {
+    final departmentName = (data['department'] as String?)?.trim();
+    final photo = (data['profileImageUrl'] as String?) ??
+        (data['profilePicture'] as String?);
+
     return StudentUser(
-      uid: data['uid'] as String? ?? doc.id,
+      uid: data['uid'] as String? ?? data['id'] as String? ?? id,
       fullName: data['fullName'] as String? ?? '',
       studentId: data['studentId'] as String? ?? '',
       email: data['email'] as String? ?? '',
       departmentId: data['departmentId'] as String?,
+      departmentName:
+          departmentName != null && departmentName.isNotEmpty
+              ? departmentName
+              : null,
       semester: data['semester']?.toString(),
-      profileImageUrl: data['profileImageUrl'] as String?,
+      profileImageUrl: photo != null && photo.isNotEmpty ? photo : null,
       role: data['role'] as String? ?? 'student',
       isActive: data['isActive'] as bool? ?? true,
     );

@@ -13,12 +13,18 @@ class UserRepository {
   final FirebaseFirestore _firestore;
 
   Future<StudentUser> getStudent(String uid) async {
-    final doc = await _firestore.collection('users').doc(uid).get();
-    if (!doc.exists) {
-      final email = FirebaseAuth.instance.currentUser?.email ?? '';
-      return StudentUser.fallback(uid: uid, email: email);
+    final studentDoc = await _firestore.collection('students').doc(uid).get();
+    if (studentDoc.exists) {
+      return StudentUser.fromDoc(studentDoc);
     }
-    return StudentUser.fromDoc(doc);
+
+    final userDoc = await _firestore.collection('users').doc(uid).get();
+    if (userDoc.exists) {
+      return StudentUser.fromDoc(userDoc);
+    }
+
+    final email = FirebaseAuth.instance.currentUser?.email ?? '';
+    return StudentUser.fallback(uid: uid, email: email);
   }
 
   Future<String?> getDepartmentName(String? departmentId) async {

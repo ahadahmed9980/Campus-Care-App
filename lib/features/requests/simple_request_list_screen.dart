@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_spacing.dart';
@@ -10,9 +10,8 @@ import '../../core/widgets/feedback_views.dart';
 import '../../core/widgets/status_chip.dart';
 import '../../data/models/request_model.dart';
 import '../../data/repositories/campus_repositories.dart';
-import 'request_details_screen.dart';
+import '../../routes/app_routes.dart';
 import 'request_entry_type.dart';
-import 'submit_request_screen.dart';
 
 /// Lightweight list so students can open request details from Dashboard.
 /// Search, filtering, and sorting are owned by Developer 3.
@@ -39,7 +38,7 @@ class SimpleRequestListScreen extends StatelessWidget {
         automaticallyImplyLeading: showBackButton,
       ),
       body: StreamBuilder<List<CampusRequest>>(
-        stream: context.read<RequestRepository>().watchUserRequests(uid),
+        stream: Get.find<RequestRepository>().watchUserRequests(uid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting &&
               !snapshot.hasData) {
@@ -58,15 +57,10 @@ class SimpleRequestListScreen extends StatelessWidget {
                   'When you report a problem or submit a complaint, it will show up here.',
               icon: Icons.assignment_outlined,
               actionLabel: 'Report a Problem',
-              onAction: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const SubmitRequestScreen(
-                      entryType: RequestEntryType.problem,
-                    ),
-                  ),
-                );
-              },
+              onAction: () => Get.toNamed(
+                AppRoutes.submitRequest,
+                arguments: RequestEntryType.problem,
+              ),
             );
           }
 
@@ -82,14 +76,10 @@ class SimpleRequestListScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final request = requests[index];
               return AppCard(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          RequestDetailsScreen(requestId: request.id),
-                    ),
-                  );
-                },
+                onTap: () => Get.toNamed(
+                  AppRoutes.requestDetails,
+                  arguments: request.id,
+                ),
                 child: Row(
                   children: [
                     Container(

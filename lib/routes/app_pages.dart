@@ -3,6 +3,9 @@ import 'package:get/get.dart';
 import '../bindings/auth_binding.dart';
 import '../bindings/home_binding.dart';
 import '../bindings/notification_binding.dart';
+import '../features/requests/request_details_screen.dart';
+import '../features/requests/request_entry_type.dart';
+import '../features/requests/submit_request_screen.dart';
 import '../models/student_model.dart';
 import '../screens/auth/auth_wrapper.dart';
 import '../screens/auth/forgot_password_screen.dart';
@@ -17,6 +20,10 @@ import 'app_routes.dart';
 
 class AppPages {
   static final routes = <GetPage<dynamic>>[
+    GetPage(
+      name: '/',
+      page: () => const SplashScreen(),
+    ),
     GetPage(
       name: AppRoutes.splash,
       page: () => const SplashScreen(),
@@ -76,6 +83,23 @@ class AppPages {
         );
       },
       binding: AuthBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.submitRequest,
+      page: () {
+        final args = Get.arguments;
+        final type =
+            args is RequestEntryType ? args : RequestEntryType.problem;
+        return SubmitRequestScreen(entryType: type);
+      },
+    ),
+    GetPage(
+      name: AppRoutes.requestDetails,
+      page: () {
+        final args = Get.arguments;
+        final id = args is String ? args : '';
+        return RequestDetailsScreen(requestId: id);
+      },
     ),
   ];
 }

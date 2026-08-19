@@ -48,16 +48,26 @@ class StudentInfoCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           _InfoRow(
             label: 'Department',
-            value: departmentName ?? user.departmentId ?? '—',
+            value: _departmentValue(departmentName, user),
           ),
           const SizedBox(height: AppSpacing.sm),
           _InfoRow(
             label: 'Semester',
-            value: user.semester == null ? '—' : 'Semester ${user.semester}',
+            value: user.semesterLabel,
           ),
         ],
       ),
     );
+  }
+
+  String _departmentValue(String? departmentName, StudentUser user) {
+    final fromController = departmentName?.trim() ?? '';
+    if (fromController.isNotEmpty) return fromController;
+    final fromProfile = user.departmentName?.trim() ?? '';
+    if (fromProfile.isNotEmpty) return fromProfile;
+    final fromId = user.departmentId?.trim() ?? '';
+    if (fromId.isNotEmpty) return fromId;
+    return '—';
   }
 }
 
