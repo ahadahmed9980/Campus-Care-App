@@ -27,23 +27,32 @@ class NotificationService {
   void Function(RemoteMessage message)? onMessageOpened;
 
   Future<void> initialize() async {
-    final notificationSettings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    try {
+      if (kIsWeb) {
+        debugPrint('Skipping native FCM setup on web.');
+        return;
+      }
 
-    if (notificationSettings.authorizationStatus ==
-        AuthorizationStatus.authorized) {
-      debugPrint('User granted notification permission');
+      final notificationSettings = await _messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      if (notificationSettings.authorizationStatus ==
+          AuthorizationStatus.authorized) {
+        debugPrint('User granted notification permission');
+      }
+
+      await _messaging.subscribeToTopic('all_students');
+      await _initializeLocalNotifications();
+      await _requestToken();
+
+      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleOpenedAppMessage);
+    } catch (e) {
+      debugPrint('Notification initialization failed: $e');
     }
-
-    await _messaging.subscribeToTopic('all_students');
-    await _initializeLocalNotifications();
-    await _requestToken();
-
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleOpenedAppMessage);
   }
 
   Future<void> _initializeLocalNotifications() async {

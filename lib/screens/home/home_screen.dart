@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/home_controller.dart';
+import '../../features/dashboard/dashboard_screen.dart';
+import '../../features/requests/simple_request_list_screen.dart';
 import '../../theme/app_theme.dart';
 import '../profile/profile_screen.dart';
 
@@ -17,8 +19,8 @@ class HomeScreen extends GetView<HomeController> {
         body: IndexedStack(
           index: controller.currentIndex.value,
           children: const [
-            _HomeTab(),
-            _RequestsTab(),
+            DashboardScreen(),
+            SimpleRequestListScreen(showBackButton: false),
             _AnnouncementsTab(),
             ProfileScreen(),
           ],
@@ -72,75 +74,6 @@ class HomeScreen extends GetView<HomeController> {
                 label: 'Profile',
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HomeTab extends StatelessWidget {
-  const _HomeTab();
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
-      appBar: AppBar(
-        title: const Text('Campus Care'),
-        centerTitle: false,
-        backgroundColor: isDark ? AppColors.darkSurface : AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Welcome to Campus Care',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.darkTextDark : AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Manage your campus service requests smoothly.',
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? AppColors.darkTextLight : AppColors.textLight,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RequestsTab extends StatelessWidget {
-  const _RequestsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
-      appBar: AppBar(
-        title: const Text('My Requests'),
-        backgroundColor: isDark ? AppColors.darkSurface : AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: Center(
-        child: Text(
-          'No requests yet',
-          style: TextStyle(
-            color: isDark ? AppColors.darkTextLight : AppColors.textLight,
           ),
         ),
       ),

@@ -16,10 +16,14 @@ class ThemeController extends GetxController {
   }
 
   Future<void> loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isDark = prefs.getBool(PreferencesKeys.isDarkMode) ?? false;
-    themeMode.value = isDark ? ThemeMode.dark : ThemeMode.light;
-    Get.changeThemeMode(themeMode.value);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isDark = prefs.getBool(PreferencesKeys.isDarkMode) ?? false;
+      themeMode.value = isDark ? ThemeMode.dark : ThemeMode.light;
+      Get.changeThemeMode(themeMode.value);
+    } catch (e) {
+      debugPrint('Failed to load theme: $e');
+    }
   }
 
   Future<void> toggleTheme(bool isDark) async {

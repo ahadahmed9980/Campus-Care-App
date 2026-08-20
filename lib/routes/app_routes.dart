@@ -8,4 +8,6 @@ abstract class AppRoutes {
   static const notifications = '/notifications';
   static const changePassword = '/change-password';
   static const editProfile = '/edit-profile';
+  static const submitRequest = '/requests/submit';
+  static const requestDetails = '/requests/details';
 }
