@@ -1,3 +1,4 @@
+import 'package:campus_care_app/features/requests/request_history_screen.dart';
 import 'package:get/get.dart';
 
 import '../bindings/auth_binding.dart';
@@ -20,14 +21,8 @@ import 'app_routes.dart';
 
 class AppPages {
   static final routes = <GetPage<dynamic>>[
-    GetPage(
-      name: '/',
-      page: () => const SplashScreen(),
-    ),
-    GetPage(
-      name: AppRoutes.splash,
-      page: () => const SplashScreen(),
-    ),
+    GetPage(name: '/', page: () => const SplashScreen()),
+    GetPage(name: AppRoutes.splash, page: () => const SplashScreen()),
     GetPage(
       name: AppRoutes.authWrapper,
       page: () => const AuthWrapper(),
@@ -88,8 +83,7 @@ class AppPages {
       name: AppRoutes.submitRequest,
       page: () {
         final args = Get.arguments;
-        final type =
-            args is RequestEntryType ? args : RequestEntryType.problem;
+        final type = args is RequestEntryType ? args : RequestEntryType.problem;
         return SubmitRequestScreen(entryType: type);
       },
     ),
@@ -100,6 +94,10 @@ class AppPages {
         final id = args is String ? args : '';
         return RequestDetailsScreen(requestId: id);
       },
+    ),
+    GetPage(
+      name: AppRoutes.requestHistory,
+      page: () => const RequestHistoryScreen(),
     ),
   ];
 }

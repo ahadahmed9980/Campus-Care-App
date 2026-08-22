@@ -1,9 +1,10 @@
+import 'package:campus_care_app/features/requests/request_history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/home_controller.dart';
 import '../../features/dashboard/dashboard_screen.dart';
-import '../../features/requests/simple_request_list_screen.dart';
+// import '../../features/requests/simple_request_list_screen.dart';
 import '../../theme/app_theme.dart';
 import '../profile/profile_screen.dart';
 
@@ -20,7 +21,7 @@ class HomeScreen extends GetView<HomeController> {
           index: controller.currentIndex.value,
           children: const [
             DashboardScreen(),
-            SimpleRequestListScreen(showBackButton: false),
+             RequestHistoryScreen(showBackButton: false),
             _AnnouncementsTab(),
             ProfileScreen(),
           ],

@@ -240,55 +240,194 @@ class _StatusOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      child: Column(
-        children: RequestStatus.values.map((status) {
-          final reached = _hasReached(request.status, status);
-          final current = request.status == status;
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: [
-                Icon(
-                  current
-                      ? Icons.radio_button_checked
-                      : reached
-                          ? Icons.check_circle
-                          : Icons.radio_button_unchecked,
-                  color: current
-                      ? status.color
-                      : reached
-                          ? AppColors.primary
-                          : AppColors.border,
-                  size: 20,
+    return StreamBuilder<List<StatusHistoryEntry>>(
+      stream: Get.find<RequestRepository>().watchStatusHistory(request.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
+          return const AppCard(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(AppSpacing.lg),
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
                 ),
-                const SizedBox(width: AppSpacing.md),
+              ),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return const AppCard(
+            child: Text(
+              'Unable to load status history.',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          );
+        }
+
+        final history = snapshot.data ?? const <StatusHistoryEntry>[];
+
+        if (history.isEmpty) {
+          return _FallbackStatusTimeline(request: request);
+        }
+
+        return AppCard(
+          child: Column(
+            children: [
+              for (int index = 0; index < history.length; index++)
+                _TimelineEntry(
+                  entry: history[index],
+                  isLast: index == history.length - 1,
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+class _TimelineEntry extends StatelessWidget {
+  const _TimelineEntry({
+    required this.entry,
+    required this.isLast,
+  });
+
+  final StatusHistoryEntry entry;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final status = entry.status;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 28,
+          child: Column(
+            children: [
+              Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: status.color,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check,
+                  size: 12,
+                  color: Colors.white,
+                ),
+              ),
+              if (!isLast)
+                Container(
+                  width: 2,
+                  height: 70,
+                  margin: const EdgeInsets.only(top: 4),
+                  color: AppColors.border,
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
                   status.label,
                   style: TextStyle(
-                    fontWeight: current ? FontWeight.w800 : FontWeight.w500,
-                    color: current ? status.color : AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: status.color,
+                  ),
+                ),
+                if (entry.createdAt != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormatters.dateTime(entry.createdAt),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+                if (entry.message.trim().isNotEmpty) ...[
+                  const SizedBox(height: 7),
+                  Text(
+                    entry.message,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+class _FallbackStatusTimeline extends StatelessWidget {
+  const _FallbackStatusTimeline({
+    required this.request,
+  });
+
+  final CampusRequest request;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 18,
+            height: 18,
+            decoration: BoxDecoration(
+              color: request.status.color,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check,
+              size: 12,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  request.status.label,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: request.status.color,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Current request status',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
             ),
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
-  }
-
-  bool _hasReached(RequestStatus current, RequestStatus step) {
-    if (current == RequestStatus.rejected) {
-      return step == RequestStatus.submitted || step == RequestStatus.rejected;
-    }
-    const order = [
-      RequestStatus.submitted,
-      RequestStatus.underReview,
-      RequestStatus.inProgress,
-      RequestStatus.resolved,
-    ];
-    return order.indexOf(step) <= order.indexOf(current) &&
-        step != RequestStatus.rejected;
   }
 }

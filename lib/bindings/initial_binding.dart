@@ -1,3 +1,4 @@
+import 'package:campus_care_app/data/repositories/notification_repository.dart';
 import 'package:get/get.dart';
 
 import '../controllers/notification_controller.dart';
@@ -13,10 +14,15 @@ class InitialBinding extends Bindings {
     Get.put<RequestRepository>(RequestRepository(), permanent: true);
     Get.put<CategoryRepository>(CategoryRepository(), permanent: true);
     Get.put<AnnouncementRepository>(AnnouncementRepository(), permanent: true);
+    Get.put<NotificationRepository>(NotificationRepository(), permanent: true);
     Get.lazyPut<NotificationService>(() => NotificationService(), fenix: true);
-    Get.lazyPut<NotificationController>(
-      () => NotificationController(Get.find<NotificationService>()),
-      fenix: true,
+    Get.put<NotificationController>(
+      NotificationController(
+        Get.find<NotificationService>(),
+        Get.find<NotificationRepository>(),
+      ),
+      permanent: true,
     );
+    Get.put<NotificationRepository>(NotificationRepository(), permanent: true);
   }
 }
