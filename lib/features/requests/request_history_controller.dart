@@ -246,7 +246,7 @@ class RequestHistoryController extends GetxController {
     searchController.clear();
   }
 
-  Future<void> refresh() async {
+  Future<void> reload() async {
     // Firestore stream is live. Refresh is intentionally lightweight.
     // The subscription will automatically receive the latest snapshot.
     await _loadCategories();

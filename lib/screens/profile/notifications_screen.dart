@@ -46,7 +46,7 @@ class NotificationsScreen extends GetView<NotificationController> {
         if (controller.errorMessage.value != null) {
           return _ErrorState(
             message: controller.errorMessage.value!,
-            onRetry: controller.refresh,
+            onRetry: controller.reload,
           );
         }
 
@@ -56,7 +56,7 @@ class NotificationsScreen extends GetView<NotificationController> {
 
         return RefreshIndicator(
           color: AppColors.primary,
-          onRefresh: controller.refresh,
+          onRefresh: controller.reload,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final horizontalPadding = constraints.maxWidth >= 700
@@ -74,7 +74,7 @@ class NotificationsScreen extends GetView<NotificationController> {
                   32,
                 ),
                 itemCount: controller.notifications.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
                   final notification = controller.notifications[index];
 
@@ -124,7 +124,7 @@ class _NotificationCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadii.lg),
             border: Border.all(
               color: unread
-                  ? AppColors.primary.withOpacity(0.20)
+                  ? AppColors.primary.withValues(alpha: 0.20)
                   : AppColors.border,
             ),
           ),
@@ -220,7 +220,7 @@ class _NotificationIcon extends StatelessWidget {
       height: 46,
       decoration: BoxDecoration(
         color: unread
-            ? AppColors.primary.withOpacity(0.12)
+            ? AppColors.primary.withValues(alpha: 0.12)
             : AppColors.background,
         shape: BoxShape.circle,
       ),

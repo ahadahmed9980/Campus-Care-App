@@ -313,7 +313,7 @@ class _RequestBody extends StatelessWidget {
       if (controller.errorMessage.value != null) {
         return _ErrorState(
           message: controller.errorMessage.value!,
-          onRetry: controller.refresh,
+          onRetry: controller.reload,
         );
       }
 
@@ -329,7 +329,7 @@ class _RequestBody extends StatelessWidget {
 
       return RefreshIndicator(
         color: const Color(0xFF18865C),
-        onRefresh: controller.refresh,
+        onRefresh: controller.reload,
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
             final horizontalPadding = constraints.maxWidth >= 700 ? 28.0 : 16.0;
@@ -345,7 +345,7 @@ class _RequestBody extends StatelessWidget {
                 28,
               ),
               itemCount: requests.length,
-              separatorBuilder: (_, __) {
+              separatorBuilder: (_, _) {
                 return const SizedBox(height: 10);
               },
               itemBuilder: (_, index) {
@@ -755,7 +755,8 @@ class _FilterSheetState extends State<_FilterSheet> {
               const SizedBox(height: 8),
 
               DropdownButtonFormField<RequestStatus?>(
-                value: status,
+                key: ValueKey(status),
+                initialValue: status,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: const Color(0xFFF7F8F8),
@@ -792,7 +793,8 @@ class _FilterSheetState extends State<_FilterSheet> {
               const SizedBox(height: 8),
 
               DropdownButtonFormField<String?>(
-                value: categoryId,
+                key: ValueKey(categoryId),
+                initialValue: categoryId,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: const Color(0xFFF7F8F8),

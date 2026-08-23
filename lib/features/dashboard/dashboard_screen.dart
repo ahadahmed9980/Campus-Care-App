@@ -13,7 +13,7 @@ import '../../data/models/campus_models.dart';
 import '../../data/repositories/campus_repositories.dart';
 import '../../routes/app_routes.dart';
 import '../requests/request_entry_type.dart';
-import '../requests/simple_request_list_screen.dart';
+import '../requests/request_history_screen.dart';
 import 'dashboard_controller.dart';
 import 'widgets/dashboard_widgets.dart';
 
@@ -184,7 +184,7 @@ class _DashboardView extends StatelessWidget {
       Get.find<HomeController>().changeTab(1);
       return;
     }
-    Get.to(() => const SimpleRequestListScreen());
+    Get.to(() => const RequestHistoryScreen());
   }
 }
 

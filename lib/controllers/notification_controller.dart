@@ -170,7 +170,7 @@ class NotificationController extends GetxController {
     }
   }
 
-  Future<void> refresh() async {
+  Future<void> reload() async {
     _startNotificationStream();
   }
 
