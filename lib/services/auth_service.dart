@@ -78,7 +78,7 @@ class AuthService {
         }
 
         // 6. Check if student document exists in Firestore, if not create a basic one
-        final docRef = _firestore.collection('students').doc(user.uid);
+        final docRef = _firestore.collection('users').doc(user.uid);
         final docSnap = await docRef.get();
 
         if (!docSnap.exists) {
@@ -123,7 +123,7 @@ class AuthService {
 
       // 2. Save complete details to Firestore
       if (credential.user != null) {
-        await _firestore.collection('students').doc(credential.user!.uid).set({
+        await _firestore.collection('users').doc(credential.user!.uid).set({
           'id': credential.user!.uid,
           'fullName': fullName,
           'studentId': studentId,
@@ -197,7 +197,7 @@ class AuthService {
 
       String imageUrl = response.secureUrl;
 
-      await _firestore.collection('students').doc(user.uid).update({
+      await _firestore.collection('users').doc(user.uid).update({
         'profilePicture': imageUrl,
       });
 
@@ -215,7 +215,7 @@ class AuthService {
       User? user = _auth.currentUser;
       if (user == null) throw 'User not logged in.';
 
-      await _firestore.collection('students').doc(user.uid).update({
+      await _firestore.collection('users').doc(user.uid).update({
         'profilePicture': '',
       });
     } catch (e) {
@@ -234,7 +234,7 @@ class AuthService {
       User? user = _auth.currentUser;
       if (user == null) throw 'User not logged in.';
 
-      await _firestore.collection('students').doc(user.uid).update({
+      await _firestore.collection('users').doc(user.uid).update({
         'fullName': fullName,
         'department': department,
         'semester': semester,
@@ -254,7 +254,7 @@ class AuthService {
 
   // ── 9. Student Profile Stream ──
   Stream<StudentModel?> studentProfileStream(String uid) {
-    return _firestore.collection('students').doc(uid).snapshots().map((doc) {
+    return _firestore.collection('users').doc(uid).snapshots().map((doc) {
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
         data['id'] = doc.id;

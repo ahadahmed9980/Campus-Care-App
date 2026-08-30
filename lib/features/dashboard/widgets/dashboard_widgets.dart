@@ -112,39 +112,46 @@ class OverviewGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: AppSpacing.md,
-      crossAxisSpacing: AppSpacing.md,
-      childAspectRatio: 1.55,
-      children: [
-        _OverviewTile(
-          count: controller.openCount,
-          label: 'Open Requests',
-          color: AppColors.open,
-          icon: Icons.assignment_outlined,
-        ),
-        _OverviewTile(
-          count: controller.inProgressCount,
-          label: 'In Progress',
-          color: AppColors.inProgress,
-          icon: Icons.timelapse_rounded,
-        ),
-        _OverviewTile(
-          count: controller.resolvedCount,
-          label: 'Resolved',
-          color: AppColors.resolved,
-          icon: Icons.check_circle_outline,
-        ),
-        _OverviewTile(
-          count: controller.announcementCount,
-          label: 'Announcements',
-          color: AppColors.announcement,
-          icon: Icons.campaign_outlined,
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth >= 720 ? 4 : 2;
+        final aspectRatio = constraints.maxWidth >= 720 ? 1.45 : 1.55;
+
+        return GridView.count(
+          crossAxisCount: crossAxisCount,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppSpacing.md,
+          crossAxisSpacing: AppSpacing.md,
+          childAspectRatio: aspectRatio,
+          children: [
+            _OverviewTile(
+              count: controller.openCount,
+              label: 'Open Requests',
+              color: AppColors.open,
+              icon: Icons.assignment_outlined,
+            ),
+            _OverviewTile(
+              count: controller.inProgressCount,
+              label: 'In Progress',
+              color: AppColors.inProgress,
+              icon: Icons.timelapse_rounded,
+            ),
+            _OverviewTile(
+              count: controller.resolvedCount,
+              label: 'Resolved',
+              color: AppColors.resolved,
+              icon: Icons.check_circle_outline,
+            ),
+            _OverviewTile(
+              count: controller.announcementCount,
+              label: 'Announcements',
+              color: AppColors.announcement,
+              icon: Icons.campaign_outlined,
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -186,7 +193,7 @@ class _OverviewTile extends StatelessWidget {
           ),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w600,
@@ -297,7 +304,7 @@ class LatestAnnouncementCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (announcement == null) {
-      return const AppCard(
+      return AppCard(
         child: Text(
           'No announcements have been published yet.',
           style: TextStyle(color: AppColors.textSecondary),
@@ -338,12 +345,12 @@ class LatestAnnouncementCard extends StatelessWidget {
                   announcement!.description,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   DateFormatters.shortDate(announcement!.publishedAt),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
@@ -387,12 +394,12 @@ class LatestRequestCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   request.location,
-                  style: const TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   DateFormatters.relative(request.createdAt),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../controllers/notification_controller.dart';
 import '../../core/constants/app_colors.dart';
@@ -25,69 +27,100 @@ class NotificationsScreen extends GetView<NotificationController> {
               return const SizedBox.shrink();
             }
 
+            final isMarking = controller.isMarkingAllRead.value;
+
             return TextButton(
-              onPressed: controller.markAllAsRead,
-              child: const Text(
-                'Mark all read',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              onPressed: isMarking ? null : controller.markAllAsRead,
+              child: isMarking
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : const Text(
+                      'Mark all read',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
             );
           }),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const _LoadingState();
-        }
-
-        if (controller.errorMessage.value != null) {
-          return _ErrorState(
-            message: controller.errorMessage.value!,
-            onRetry: controller.reload,
-          );
-        }
-
-        if (controller.notifications.isEmpty) {
-          return const _EmptyNotificationsState();
-        }
-
-        return RefreshIndicator(
-          color: AppColors.primary,
-          onRefresh: controller.reload,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final horizontalPadding = constraints.maxWidth >= 700
-                  ? 28.0
-                  : 16.0;
-
-              return ListView.separated(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                padding: EdgeInsets.fromLTRB(
-                  horizontalPadding,
-                  16,
-                  horizontalPadding,
-                  32,
-                ),
-                itemCount: controller.notifications.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final notification = controller.notifications[index];
-
-                  return _NotificationCard(
-                    notification: notification,
-                    onTap: () => _handleNotificationTap(notification),
-                  );
-                },
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Obx(() {
+            if (controller.errorMessage.value != null && !controller.isLoading.value) {
+              return _ErrorState(
+                message: controller.errorMessage.value!,
+                onRetry: controller.reload,
               );
-            },
-          ),
-        );
-      }),
+            }
+
+            final isLoading = controller.isLoading.value;
+
+            final notificationsList = isLoading && controller.notifications.isEmpty
+                ? List.generate(
+                    5,
+                    (index) => CampusNotification(
+                      id: 'mock_$index',
+                      title: 'Mock Notification Title $index',
+                      message: 'This is a description placeholder for mock notification messages to check layout spacing and visual flow.',
+                      type: 'request_resolved',
+                      isRead: false,
+                      createdAt: DateTime.now(),
+                    ),
+                  )
+                : controller.notifications;
+
+            if (!isLoading && controller.notifications.isEmpty) {
+              return const _EmptyNotificationsState();
+            }
+
+            return Skeletonizer(
+              enabled: isLoading,
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: controller.reload,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final horizontalPadding = constraints.maxWidth >= 700
+                        ? 28.0
+                        : 16.0;
+
+                    return ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: EdgeInsets.fromLTRB(
+                        horizontalPadding,
+                        16,
+                        horizontalPadding,
+                        32,
+                      ),
+                      itemCount: notificationsList.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final notification = notificationsList[index];
+
+                        return _NotificationCard(
+                          notification: notification,
+                          onTap: () => _handleNotificationTap(notification),
+                        ).animate().fade(duration: 250.ms, delay: (index * 30).ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad);
+                      },
+                    );
+                  },
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
     );
   }
 
@@ -120,7 +153,7 @@ class _NotificationCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: unread ? AppColors.primaryLight : AppColors.surface,
+            color: unread ? (Get.isDarkMode ? AppColors.primary.withValues(alpha: 0.15) : AppColors.primaryLight) : AppColors.surface,
             borderRadius: BorderRadius.circular(AppRadii.lg),
             border: Border.all(
               color: unread
@@ -176,7 +209,7 @@ class _NotificationCard extends StatelessWidget {
                         notification.message,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           height: 1.4,
                           color: AppColors.textSecondary,
@@ -188,7 +221,7 @@ class _NotificationCard extends StatelessWidget {
 
                     Text(
                       _formatNotificationDate(notification.createdAt),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textSecondary,
@@ -286,7 +319,7 @@ class _EmptyNotificationsState extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            const Text(
+            Text(
               'You’re all caught up. New updates will appear here.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textSecondary, height: 1.4),
@@ -294,17 +327,6 @@ class _EmptyNotificationsState extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _LoadingState extends StatelessWidget {
-  const _LoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: CircularProgressIndicator(color: AppColors.primary),
     );
   }
 }
@@ -341,7 +363,7 @@ class _ErrorState extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: AppColors.textSecondary),
             ),
 
             const SizedBox(height: 20),

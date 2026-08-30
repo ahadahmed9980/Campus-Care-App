@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/notification_controller.dart';
@@ -97,7 +98,7 @@ class ProfileScreen extends StatelessWidget {
                               isDark: isDark,
                             ),
                         ],
-                      ),
+                      ).animate().fade(duration: 350.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
                       const SizedBox(height: 16),
 
                       // Settings & Preferences Card
@@ -120,11 +121,11 @@ class ProfileScreen extends StatelessWidget {
                           // Dark Mode & Push Notifications Toggles
                           _PreferencesToggles(isDark: isDark),
                         ],
-                      ),
+                      ).animate().fade(duration: 350.ms, delay: 100.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
                       const SizedBox(height: 16),
 
                       // Logout Button
-                      _LogoutButton(isDark: isDark),
+                      _LogoutButton(isDark: isDark).animate().fade(duration: 350.ms, delay: 200.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -188,7 +189,7 @@ class _ProfileHeader extends StatelessWidget {
                         )
                       : _AvatarPlaceholder(name: student?.fullName ?? ''),
                 ),
-              ),
+              ).animate().fade(duration: 400.ms).scale(begin: const Offset(0.6, 0.6), end: const Offset(1, 1), curve: Curves.bounceOut),
               SizedBox(height: compact ? 8 : 10),
               Text(
                 student?.fullName ?? user.displayName ?? 'Student',
@@ -200,7 +201,7 @@ class _ProfileHeader extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.3,
                 ),
-              ),
+              ).animate().fade(duration: 350.ms, delay: 100.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
               if ((student?.studentId ?? '').isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Container(
@@ -218,7 +219,7 @@ class _ProfileHeader extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                ),
+                ).animate().fade(duration: 350.ms, delay: 180.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
               ],
             ],
           ),

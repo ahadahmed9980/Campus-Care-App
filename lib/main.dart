@@ -4,13 +4,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'bindings/initial_binding.dart';
+import 'controllers/connectivity_controller.dart';
 import 'data/repositories/campus_repositories.dart';
 import 'firebase_options.dart';
 import 'routes/app_pages.dart';
+import 'screens/connectivity/no_internet_screen.dart';
 import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
+import 'utils/preferences_keys.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,11 +36,21 @@ Future<void> main() async {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   }
 
-  runApp(const CampusCareApp());
+  ThemeMode initialThemeMode = ThemeMode.light;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final isDark = prefs.getBool(PreferencesKeys.isDarkMode) ?? false;
+    initialThemeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+  } catch (e) {
+    debugPrint('Failed to load initial theme: $e');
+  }
+
+  runApp(CampusCareApp(initialThemeMode: initialThemeMode));
 }
 
 class CampusCareApp extends StatelessWidget {
-  const CampusCareApp({super.key});
+  final ThemeMode initialThemeMode;
+  const CampusCareApp({super.key, required this.initialThemeMode});
 
   @override
   Widget build(BuildContext context) {
@@ -56,10 +70,26 @@ class CampusCareApp extends StatelessWidget {
         unknownRoute: AppPages.routes.first,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.light,
+        themeMode: initialThemeMode,
         defaultTransition: Transition.fadeIn,
+        builder: (context, child) {
+          return Obx(() {
+            final isRegistered = Get.isRegistered<ConnectivityController>();
+            if (!isRegistered) {
+              return child ?? const SizedBox.shrink();
+            }
+            final connectivityCtrl = Get.find<ConnectivityController>();
+            return Stack(
+              children: [
+                // ignore: use_null_aware_elements
+                if (child != null) child,
+                if (!connectivityCtrl.isConnected.value)
+                  const Positioned.fill(child: NoInternetScreen()),
+              ],
+            );
+          });
+        },
       ),
     );
   }
 }
-

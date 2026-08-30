@@ -21,7 +21,7 @@ class ImageAttachmentBox extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Add Image (Optional)',
           style: TextStyle(
             fontSize: 13,
@@ -42,11 +42,11 @@ class ImageAttachmentBox extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadii.lg),
                 border: Border.all(color: AppColors.border, style: BorderStyle.solid),
               ),
-              child: const Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_photo_alternate_outlined, color: AppColors.primary),
-                  SizedBox(height: AppSpacing.sm),
+                  const Icon(Icons.add_photo_alternate_outlined, color: AppColors.primary),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Tap to attach a photo',
                     style: TextStyle(color: AppColors.textSecondary),
@@ -78,7 +78,7 @@ class ImageAttachmentBox extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: onRemove,
-                  icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                  icon: Icon(Icons.close, color: AppColors.textSecondary),
                 ),
               ],
             ),

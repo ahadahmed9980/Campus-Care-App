@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
 import '../../theme/app_theme.dart';
@@ -41,161 +42,166 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : AppColors.surface,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
 
-              // ── Back ──
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  onPressed: () => Get.back(),
-                  icon: Icon(
-                    Icons.arrow_back,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // ── Header ──
-              Text(
-                'Forgot Password?',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppColors.textDark,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "No worries! Enter your university email and we'll send you a reset link.",
-                style: TextStyle(
-                  fontSize: 15,
-                  color: isDark ? Colors.grey[400] : AppColors.textLight,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 40),
-
-              if (!_emailSent) ...[
-                // ── Reset Form Icon ──
-                Center(
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : AppColors.primaryLight,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.lock_reset_rounded,
-                        size: 48,
-                        color: AppColors.primary,
+                  // ── Back ──
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      onPressed: () => Get.back(),
+                      icon: Icon(
+                        Icons.arrow_back,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
-                // ── Form ──
-                Form(
-                  key: _formKey,
-                  child: AppTextField(
-                    label: 'University Email',
-                    hint: '', // Required parameter ko empty string se satisfy kiya gaya hai
-                    controller: _emailCtrl,
-                    prefixIcon: Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.done,
-                    onEditingComplete: _sendReset,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return 'Email is required';
-                      }
-                      if (!v.contains('@')) {
-                        return 'Enter a valid email address';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(height: 28),
+                  // ── Header ──
+                  Text(
+                    'Forgot Password?',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppColors.textDark,
+                      letterSpacing: -0.5,
+                    ),
+                  ).animate().fade(duration: 350.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
+                  const SizedBox(height: 8),
+                  Text(
+                    "No worries! Enter your university email and we'll send you a reset link.",
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: isDark ? Colors.grey[400] : AppColors.textLight,
+                      height: 1.5,
+                    ),
+                  ).animate().fade(duration: 350.ms, delay: 50.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
+                  const SizedBox(height: 40),
 
-                Obx(
-                  () => PrimaryButton(
-                    label: 'Send Reset Link',
-                    onPressed: _sendReset,
-                    isLoading: _authController.isLoading.value,
-                    icon: Icons.send_rounded,
-                  ),
-                ),
-              ] else ...[
-                // ── Success State ──
-                Center(
-                  child: Column(
-                    children: [
-                      Container(
+                  if (!_emailSent) ...[
+                    // ── Reset Form Icon ──
+                    Center(
+                      child: Container(
                         width: 100,
                         height: 100,
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF064E3B) : AppColors.successLight,
+                          color: isDark ? const Color(0xFF1E293B) : AppColors.primaryLight,
                           shape: BoxShape.circle,
                         ),
                         child: const Center(
                           child: Icon(
-                            Icons.mark_email_read_outlined,
+                            Icons.lock_reset_rounded,
                             size: 48,
-                            color: AppColors.success,
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 28),
-                      Text(
-                        'Check your email!',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppColors.textDark,
-                        ),
+                    ).animate().fade(duration: 350.ms, delay: 100.ms).scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1), curve: Curves.bounceOut),
+                    const SizedBox(height: 40),
+
+                    // ── Form ──
+                    Form(
+                      key: _formKey,
+                      child: AppTextField(
+                        label: 'University Email',
+                        hint: '', // Required parameter ko empty string se satisfy kiya gaya hai
+                        controller: _emailCtrl,
+                        prefixIcon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.done,
+                        onEditingComplete: _sendReset,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Email is required';
+                          }
+                          if (!v.contains('@')) {
+                            return 'Enter a valid email address';
+                          }
+                          return null;
+                        },
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'We sent a password reset link to\n${_emailCtrl.text}',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDark ? Colors.grey[400] : AppColors.textLight,
-                          height: 1.6,
-                        ),
+                    ).animate().fade(duration: 350.ms, delay: 150.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
+                    const SizedBox(height: 28),
+
+                    Obx(
+                      () => PrimaryButton(
+                        label: 'Send Reset Link',
+                        onPressed: _sendReset,
+                        isLoading: _authController.isLoading.value,
+                        icon: Icons.send_rounded,
                       ),
-                      const SizedBox(height: 40),
-                      PrimaryButton(
-                        label: 'Back to Login',
-                        onPressed: () => Get.back(),
+                    ).animate().fade(duration: 350.ms, delay: 200.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
+                  ] else ...[
+                    // ── Success State ──
+                    Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF064E3B) : AppColors.successLight,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.mark_email_read_outlined,
+                                size: 48,
+                                color: AppColors.success,
+                              ),
+                            ),
+                          ).animate().fade(duration: 350.ms).scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1), curve: Curves.bounceOut),
+                          const SizedBox(height: 28),
+                          Text(
+                            'Check your email!',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppColors.textDark,
+                            ),
+                          ).animate().fade(duration: 350.ms, delay: 100.ms).slideY(begin: 0.1, end: 0),
+                          const SizedBox(height: 12),
+                          Text(
+                            'We sent a password reset link to\n${_emailCtrl.text}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark ? Colors.grey[400] : AppColors.textLight,
+                              height: 1.6,
+                            ),
+                          ).animate().fade(duration: 350.ms, delay: 150.ms).slideY(begin: 0.1, end: 0),
+                          const SizedBox(height: 40),
+                          PrimaryButton(
+                            label: 'Back to Login',
+                            onPressed: () => Get.back(),
+                          ).animate().fade(duration: 350.ms, delay: 200.ms).slideY(begin: 0.1, end: 0),
+                          const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: () => setState(() => _emailSent = false),
+                            child: Text(
+                              'Try a different email',
+                              style: TextStyle(
+                                color: isDark ? Colors.grey[400] : AppColors.textLight,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ).animate().fade(duration: 350.ms, delay: 250.ms),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      TextButton(
-                        onPressed: () => setState(() => _emailSent = false),
-                        child: Text(
-                          'Try a different email',
-                          style: TextStyle(
-                            color: isDark ? Colors.grey[400] : AppColors.textLight,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 32),
-            ],
+                    ),
+                  ],
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
           ),
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../routes/app_routes.dart';
 import '../services/auth_service.dart';
+import 'connectivity_controller.dart';
 
 class AuthController extends GetxController {
   final AuthService _authService;
@@ -11,7 +12,25 @@ class AuthController extends GetxController {
   final isLoading = false.obs;
   final isGoogleLoading = false.obs;
 
+  bool _checkOffline() {
+    if (Get.isRegistered<ConnectivityController>()) {
+      final conn = Get.find<ConnectivityController>();
+      if (!conn.isConnected.value) {
+        Get.snackbar(
+          'No Internet Connection',
+          'Your request cannot be processed right now. Please check your internet connection and try again.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFFE53935),
+          colorText: Colors.white,
+        );
+        return true;
+      }
+    }
+    return false;
+  }
+
   Future<void> login({required String email, required String password}) async {
+    if (_checkOffline()) return;
     try {
       isLoading.value = true;
       await _authService.login(email: email, password: password);
@@ -28,6 +47,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> signInWithGoogle() async {
+    if (_checkOffline()) return;
     try {
       isGoogleLoading.value = true;
       final user = await _authService.signInWithGoogle();
@@ -54,6 +74,7 @@ class AuthController extends GetxController {
     required String phone,
     required String password,
   }) async {
+    if (_checkOffline()) return;
     try {
       isLoading.value = true;
       await _authService.registerStudent(
@@ -84,6 +105,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> sendPasswordReset(String email) async {
+    if (_checkOffline()) return;
     try {
       isLoading.value = true;
       await _authService.sendPasswordReset(email);
@@ -102,6 +124,7 @@ class AuthController extends GetxController {
     required String currentPassword,
     required String newPassword,
   }) async {
+    if (_checkOffline()) return;
     try {
       isLoading.value = true;
       await _authService.changePassword(

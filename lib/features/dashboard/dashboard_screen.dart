@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../controllers/home_controller.dart';
 import '../../core/constants/app_colors.dart';
@@ -10,6 +12,7 @@ import '../../core/utils/date_formatters.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/feedback_views.dart';
 import '../../data/models/campus_models.dart';
+import '../../data/models/request_model.dart';
 import '../../data/repositories/campus_repositories.dart';
 import '../../routes/app_routes.dart';
 import '../requests/request_entry_type.dart';
@@ -53,22 +56,19 @@ class _DashboardView extends StatelessWidget {
         child: RefreshIndicator(
           color: AppColors.primary,
           onRefresh: controller.start,
-          child: _buildBody(context, controller),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: _buildBody(context, controller),
+            ),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildBody(BuildContext context, DashboardController controller) {
-    if (controller.loading && controller.user == null) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 180),
-          LoadingView(message: 'Loading your dashboard...'),
-        ],
-      );
-    }
+    final isLoadingSkeleton = controller.loading && controller.user == null;
 
     if (controller.error != null && controller.user == null) {
       return ListView(
@@ -80,98 +80,151 @@ class _DashboardView extends StatelessWidget {
       );
     }
 
-    final user = controller.user!;
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.screen,
-        AppSpacing.md,
-        AppSpacing.screen,
-        AppSpacing.xxxl,
-      ),
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${DateFormatters.greeting()}, ${user.firstName} 👋',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
+    final user = controller.user ??
+        const StudentUser(
+          uid: 'dummy',
+          fullName: 'John Doe',
+          studentId: '2023-SE-123',
+          email: 'johndoe@da.edu.pk',
+          departmentName: 'Software Engineering',
+          semester: '4th Semester',
+        );
+
+    final latestRequest = controller.latestRequest ??
+        (isLoadingSkeleton
+            ? const CampusRequest(
+                id: 'dummy',
+                userId: 'dummy',
+                title: 'Mock Request Title',
+                description: 'Mock Request Description',
+                categoryId: 'General',
+                location: 'Block C - Room 102',
+                status: RequestStatus.submitted,
+                priority: RequestPriority.medium,
+                imageUrls: [],
+                createdAt: null,
+              )
+            : null);
+
+    final latestAnnouncement = controller.latestAnnouncement ??
+        (isLoadingSkeleton
+            ? AnnouncementPreview(
+                id: 'dummy',
+                title: 'Important Campus Notice',
+                description:
+                    'This is a description placeholder for announcements.',
+                category: 'General',
+                publishedAt: DateTime.now(),
+              )
+            : null);
+
+    return Skeletonizer(
+      enabled: isLoadingSkeleton,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screen,
+          AppSpacing.md,
+          AppSpacing.screen,
+          AppSpacing.xxxl,
+        ),
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${DateFormatters.greeting()}, ${user.firstName} 👋',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Here’s what needs your attention today.',
+                    const SizedBox(height: 4),
+                    Text(
+                      'Here’s what needs your attention today.',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              _Avatar(user: user),
+              const SizedBox(width: AppSpacing.sm),
+              IconButton(
+                onPressed: () => Get.toNamed(AppRoutes.notifications),
+                icon: const Icon(Icons.notifications_none_rounded),
+              ),
+            ],
+          ).animate().fade(duration: 350.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
+          const SizedBox(height: AppSpacing.xl),
+          StudentInfoCard(
+            user: user,
+            departmentName: controller.departmentName,
+          ).animate().fade(duration: 350.ms, delay: 80.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
+          const SizedBox(height: AppSpacing.xl),
+          const _SectionTitle('Overview')
+              .animate()
+              .fade(duration: 350.ms, delay: 160.ms),
+          const SizedBox(height: AppSpacing.md),
+          OverviewGrid(controller: controller)
+              .animate()
+              .fade(duration: 350.ms, delay: 160.ms)
+              .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
+          const SizedBox(height: AppSpacing.xl),
+          const _SectionTitle('Quick Actions')
+              .animate()
+              .fade(duration: 350.ms, delay: 240.ms),
+          const SizedBox(height: AppSpacing.md),
+          QuickActionsRow(
+            onReportProblem: () => _openSubmit(
+              context,
+              RequestEntryType.problem,
+            ),
+            onSubmitComplaint: () => _openSubmit(
+              context,
+              RequestEntryType.complaint,
+            ),
+            onMyRequests: () => _openMyRequests(context),
+            onCampusInfo: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Campus Info is owned by Developer 4.'),
+                ),
+              );
+            },
+          ).animate().fade(duration: 350.ms, delay: 240.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
+          const SizedBox(height: AppSpacing.xl),
+          const _SectionTitle('Latest Request')
+              .animate()
+              .fade(duration: 350.ms, delay: 320.ms),
+          const SizedBox(height: AppSpacing.md),
+          (latestRequest == null
+              ? AppCard(
+                  child: Text(
+                    'You have not submitted a request yet. Use Report a Problem or Submit a Complaint to get started.',
                     style: TextStyle(color: AppColors.textSecondary),
                   ),
-                ],
-              ),
-            ),
-            _Avatar(user: user),
-            const SizedBox(width: AppSpacing.sm),
-            IconButton(
-              onPressed: () => Get.toNamed(AppRoutes.notifications),
-              icon: const Icon(Icons.notifications_none_rounded),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        StudentInfoCard(
-          user: user,
-          departmentName: controller.departmentName,
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        const _SectionTitle('Overview'),
-        const SizedBox(height: AppSpacing.md),
-        OverviewGrid(controller: controller),
-        const SizedBox(height: AppSpacing.xl),
-        const _SectionTitle('Quick Actions'),
-        const SizedBox(height: AppSpacing.md),
-        QuickActionsRow(
-          onReportProblem: () => _openSubmit(
-            context,
-            RequestEntryType.problem,
-          ),
-          onSubmitComplaint: () => _openSubmit(
-            context,
-            RequestEntryType.complaint,
-          ),
-          onMyRequests: () => _openMyRequests(context),
-          onCampusInfo: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Campus Info is owned by Developer 4.'),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        const _SectionTitle('Latest Request'),
-        const SizedBox(height: AppSpacing.md),
-        if (controller.latestRequest == null)
-          const AppCard(
-            child: Text(
-              'You have not submitted a request yet. Use Report a Problem or Submit a Complaint to get started.',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-          )
-        else
-          LatestRequestCard(
-            request: controller.latestRequest!,
-            onTap: () => Get.toNamed(
-              AppRoutes.requestDetails,
-              arguments: controller.latestRequest!.id,
-            ),
-          ),
-        const SizedBox(height: AppSpacing.xl),
-        const _SectionTitle('Latest Announcement'),
-        const SizedBox(height: AppSpacing.md),
-        LatestAnnouncementCard(announcement: controller.latestAnnouncement),
-      ],
+                )
+              : LatestRequestCard(
+                  request: latestRequest,
+                  onTap: () => Get.toNamed(
+                    AppRoutes.requestDetails,
+                    arguments: latestRequest.id,
+                  ),
+                )).animate().fade(duration: 350.ms, delay: 320.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
+          const SizedBox(height: AppSpacing.xl),
+          const _SectionTitle('Latest Announcement')
+              .animate()
+              .fade(duration: 350.ms, delay: 400.ms),
+          const SizedBox(height: AppSpacing.md),
+          LatestAnnouncementCard(announcement: latestAnnouncement)
+              .animate()
+              .fade(duration: 350.ms, delay: 400.ms)
+              .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
+        ],
+      ),
     );
   }
 

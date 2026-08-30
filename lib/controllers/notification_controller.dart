@@ -10,6 +10,7 @@ import '../data/repositories/notification_repository.dart';
 import '../routes/app_routes.dart';
 import '../services/notification_service.dart';
 import '../utils/preferences_keys.dart';
+import 'connectivity_controller.dart';
 
 class NotificationController extends GetxController {
   NotificationController(
@@ -27,6 +28,7 @@ class NotificationController extends GetxController {
   final isLoading = true.obs;
 
   final errorMessage = RxnString();
+  final isMarkingAllRead = false.obs;
 
   Stream<List<CampusNotification>>? _notificationStream;
 
@@ -96,6 +98,13 @@ class NotificationController extends GetxController {
       return;
     }
 
+    if (Get.isRegistered<ConnectivityController>()) {
+      final conn = Get.find<ConnectivityController>();
+      if (!conn.isConnected.value) {
+        return;
+      }
+    }
+
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
@@ -141,6 +150,23 @@ class NotificationController extends GetxController {
       return;
     }
 
+    if (Get.isRegistered<ConnectivityController>()) {
+      final conn = Get.find<ConnectivityController>();
+      if (!conn.isConnected.value) {
+        Get.snackbar(
+          'No Internet Connection',
+          'Please check your internet connection and try again.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFFE53935),
+          colorText: Colors.white,
+        );
+        return;
+      }
+    }
+
+    if (isMarkingAllRead.value) return;
+    isMarkingAllRead.value = true;
+
     try {
       await _notificationRepository.markAllAsRead(
         userId: user.uid,
@@ -167,6 +193,8 @@ class NotificationController extends GetxController {
         'Please try again.',
         snackPosition: SnackPosition.BOTTOM,
       );
+    } finally {
+      isMarkingAllRead.value = false;
     }
   }
 

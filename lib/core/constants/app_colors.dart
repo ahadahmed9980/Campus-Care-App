@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// CampusCare design tokens used by dashboard and request screens.
 class AppColors {
@@ -9,12 +10,12 @@ class AppColors {
   static const Color primaryLight = Color(0xFFE7F4EE);
   static const Color accent = Color(0xFF2E8B63);
 
-  static const Color background = Color(0xFFF3F5F7);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color border = Color(0xFFE4E8EC);
+  static Color get background => Get.isDarkMode ? const Color(0xFF121212) : const Color(0xFFF3F5F7);
+  static Color get surface => Get.isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFFFFFFF);
+  static Color get border => Get.isDarkMode ? const Color(0xFF2C2C2C) : const Color(0xFFE4E8EC);
 
-  static const Color textPrimary = Color(0xFF1A1D21);
-  static const Color textSecondary = Color(0xFF6B7280);
+  static Color get textPrimary => Get.isDarkMode ? const Color(0xFFE0E0E0) : const Color(0xFF1A1D21);
+  static Color get textSecondary => Get.isDarkMode ? const Color(0xFF8A8F8E) : const Color(0xFF6B7280);
   static const Color textOnPrimary = Color(0xFFFFFFFF);
 
   static const Color open = Color(0xFF1B6B4A);
@@ -31,3 +32,4 @@ class AppColors {
   static const Color error = Color(0xFFD32F2F);
   static const Color warning = Color(0xFFE29A12);
 }
+

@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_spacing.dart';
@@ -37,97 +39,121 @@ class SimpleRequestListScreen extends StatelessWidget {
         title: const Text('My Requests'),
         automaticallyImplyLeading: showBackButton,
       ),
-      body: StreamBuilder<List<CampusRequest>>(
-        stream: Get.find<RequestRepository>().watchUserRequests(uid),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              !snapshot.hasData) {
-            return const LoadingView(message: 'Loading your requests...');
-          }
-          if (snapshot.hasError) {
-            return const ErrorView(
-              message: 'Unable to load your requests right now.',
-            );
-          }
-          final requests = snapshot.data ?? const [];
-          if (requests.isEmpty) {
-            return EmptyView(
-              title: 'No requests yet',
-              message:
-                  'When you report a problem or submit a complaint, it will show up here.',
-              icon: Icons.assignment_outlined,
-              actionLabel: 'Report a Problem',
-              onAction: () => Get.toNamed(
-                AppRoutes.submitRequest,
-                arguments: RequestEntryType.problem,
-              ),
-            );
-          }
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: StreamBuilder<List<CampusRequest>>(
+            stream: Get.find<RequestRepository>().watchUserRequests(uid),
+            builder: (context, snapshot) {
+              final isLoading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
 
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.screen,
-              AppSpacing.sm,
-              AppSpacing.screen,
-              AppSpacing.xxxl,
-            ),
-            itemCount: requests.length,
-            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-            itemBuilder: (context, index) {
-              final request = requests[index];
-              return AppCard(
-                onTap: () => Get.toNamed(
-                  AppRoutes.requestDetails,
-                  arguments: request.id,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
-                        borderRadius: BorderRadius.circular(AppRadii.sm),
+              if (snapshot.hasError) {
+                return const ErrorView(
+                  message: 'Unable to load your requests right now.',
+                );
+              }
+
+              final requests = isLoading && (snapshot.data == null || snapshot.data!.isEmpty)
+                  ? List.generate(
+                      5,
+                      (index) => CampusRequest(
+                        id: 'mock_$index',
+                        userId: 'dummy',
+                        title: 'Mock Request Title $index',
+                        description: 'Mock request description text placeholder.',
+                        categoryId: 'Internet',
+                        location: 'Block C - Room 102',
+                        priority: RequestPriority.medium,
+                        imageUrls: const [],
+                        status: RequestStatus.submitted,
+                        createdAt: DateTime.now(),
                       ),
-                      child: const Icon(
-                        Icons.assignment_outlined,
-                        color: AppColors.primary,
+                    )
+                  : snapshot.data ?? const [];
+
+              if (!isLoading && requests.isEmpty) {
+                return EmptyView(
+                  title: 'No requests yet',
+                  message:
+                      'When you report a problem or submit a complaint, it will show up here.',
+                  icon: Icons.assignment_outlined,
+                  actionLabel: 'Report a Problem',
+                  onAction: () => Get.toNamed(
+                    AppRoutes.submitRequest,
+                    arguments: RequestEntryType.problem,
+                  ),
+                );
+              }
+
+              return Skeletonizer(
+                enabled: isLoading,
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screen,
+                    AppSpacing.sm,
+                    AppSpacing.screen,
+                    AppSpacing.xxxl,
+                  ),
+                  itemCount: requests.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+                  itemBuilder: (context, index) {
+                    final request = requests[index];
+                    return AppCard(
+                      onTap: () => Get.toNamed(
+                        AppRoutes.requestDetails,
+                        arguments: request.id,
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          Text(
-                            request.title,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            request.location,
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 13,
+                          Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              borderRadius: BorderRadius.circular(AppRadii.sm),
+                            ),
+                            child: const Icon(
+                              Icons.assignment_outlined,
+                              color: AppColors.primary,
                             ),
                           ),
-                          Text(
-                            DateFormatters.dateTime(request.createdAt),
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 12,
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  request.title,
+                                  style: const TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  request.location,
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                Text(
+                                  DateFormatters.dateTime(request.createdAt),
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          StatusChip(status: request.status, compact: true),
                         ],
                       ),
-                    ),
-                    StatusChip(status: request.status, compact: true),
-                  ],
+                    ).animate().fade(duration: 250.ms, delay: (index * 30).ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad);
+                  },
                 ),
               );
             },
-          );
-        },
+          ),
+        ),
       ),
     );
   }

@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../controllers/connectivity_controller.dart';
 import '../../models/student_model.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
@@ -60,6 +63,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         : null;
   }
 
+  bool _checkOffline() {
+    if (Get.isRegistered<ConnectivityController>()) {
+      final conn = Get.find<ConnectivityController>();
+      if (!conn.isConnected.value) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No Internet Connection. Please check your internet connection and try again.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return true;
+      }
+    }
+    return false;
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -68,6 +87,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    if (_checkOffline()) return;
     try {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(
@@ -110,6 +130,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _removePicture() async {
+    if (_checkOffline()) return;
     setState(() => _isLoading = true);
     try {
       await AuthService().removeProfilePicture();
@@ -138,6 +159,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_checkOffline()) return;
 
     setState(() => _isLoading = true);
     try {
@@ -243,176 +265,200 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         foregroundColor: Colors.white,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                // Profile Picture Section
-                Center(
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: isDark ? AppColors.darkInputBg : AppColors.primaryLight,
-                        backgroundImage: _selectedImage != null
-                            ? FileImage(_selectedImage!)
-                            : (widget.student.profilePicture.isNotEmpty
-                                ? NetworkImage(widget.student.profilePicture)
-                                    as ImageProvider
-                                : null),
-                        child: (_selectedImage == null &&
-                                widget.student.profilePicture.isEmpty)
-                            ? const Icon(
-                                Icons.person_outlined,
-                                size: 50,
-                                color: AppColors.primary,
-                              )
-                            : null,
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: () => _showImagePickerOptions(isDark),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    // Profile Picture Section
+                    Center(
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundColor: isDark ? AppColors.darkInputBg : AppColors.primaryLight,
+                            backgroundImage: _selectedImage != null
+                                ? FileImage(_selectedImage!)
+                                : (widget.student.profilePicture.isNotEmpty
+                                    ? NetworkImage(widget.student.profilePicture)
+                                        as ImageProvider
+                                    : null),
+                            child: (_selectedImage == null &&
+                                    widget.student.profilePicture.isEmpty)
+                                ? const Icon(
+                                    Icons.person_outlined,
+                                    size: 50,
+                                    color: AppColors.primary,
+                                  )
+                                : null,
+                          ),
+                          if (_isLoading)
+                            Positioned.fill(
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: Colors.black45,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 28,
+                                    height: 28,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.camera_alt_rounded,
-                              color: Colors.white,
-                              size: 18,
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: _isLoading ? null : () => _showImagePickerOptions(isDark),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
+                    ).animate().fade(duration: 400.ms).scale(begin: const Offset(0.7, 0.7), end: const Offset(1, 1), curve: Curves.bounceOut),
+                    const SizedBox(height: 32),
 
-                // Full Name
-                TextFormField(
-                  controller: _nameController,
-                  style: TextStyle(
-                    color: isDark ? AppColors.darkTextDark : AppColors.textDark,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Full Name',
-                    prefixIcon: Icon(Icons.person_outline),
-                  ),
-                  validator: (val) =>
-                      val == null || val.trim().isEmpty ? 'Enter full name' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Department Dropdown
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedDepartment,
-                  dropdownColor: isDark ? AppColors.darkSurface : AppColors.surface,
-                  style: TextStyle(
-                    color: isDark ? AppColors.darkTextDark : AppColors.textDark,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Department',
-                    prefixIcon: Icon(Icons.school_outlined),
-                  ),
-                  hint: const Text('Select Department'),
-                  items: _departments.map((String department) {
-                    return DropdownMenuItem<String>(
-                      value: department,
-                      child: Text(
-                        department,
-                        style: TextStyle(
-                          color: isDark ? AppColors.darkTextDark : AppColors.textDark,
-                        ),
+                    // Full Name
+                    TextFormField(
+                      controller: _nameController,
+                      style: TextStyle(
+                        color: isDark ? AppColors.darkTextDark : AppColors.textDark,
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedDepartment = newValue;
-                    });
-                  },
-                  validator: (val) =>
-                      val == null ? 'Select department' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Semester Dropdown
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedSemester,
-                  dropdownColor: isDark ? AppColors.darkSurface : AppColors.surface,
-                  style: TextStyle(
-                    color: isDark ? AppColors.darkTextDark : AppColors.textDark,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Semester',
-                    prefixIcon: Icon(Icons.calendar_month_outlined),
-                  ),
-                  hint: const Text('Select Semester'),
-                  items: _semesters.map((String semester) {
-                    return DropdownMenuItem<String>(
-                      value: semester,
-                      child: Text(
-                        semester,
-                        style: TextStyle(
-                          color: isDark ? AppColors.darkTextDark : AppColors.textDark,
-                        ),
+                      decoration: const InputDecoration(
+                        labelText: 'Full Name',
+                        prefixIcon: Icon(Icons.person_outline),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedSemester = newValue;
-                    });
-                  },
-                  validator: (val) =>
-                      val == null ? 'Select semester' : null,
-                ),
-                const SizedBox(height: 16),
+                      validator: (val) =>
+                          val == null || val.trim().isEmpty ? 'Enter full name' : null,
+                    ).animate().fade(duration: 350.ms, delay: 50.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                    const SizedBox(height: 16),
 
-                // Phone Number
-                TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  style: TextStyle(
-                    color: isDark ? AppColors.darkTextDark : AppColors.textDark,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number',
-                    prefixIcon: Icon(Icons.phone_outlined),
-                  ),
-                  validator: (val) =>
-                      val == null || val.trim().isEmpty ? 'Enter phone number' : null,
-                ),
-                const SizedBox(height: 32),
-
-                // Save Button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _saveProfile,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                    // Department Dropdown
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedDepartment,
+                      dropdownColor: isDark ? AppColors.darkSurface : AppColors.surface,
+                      style: TextStyle(
+                        color: isDark ? AppColors.darkTextDark : AppColors.textDark,
+                      ),
+                      decoration: const InputDecoration(
+                        labelText: 'Department',
+                        prefixIcon: Icon(Icons.school_outlined),
+                      ),
+                      hint: const Text('Select Department'),
+                      items: _departments.map((String department) {
+                        return DropdownMenuItem<String>(
+                          value: department,
+                          child: Text(
+                            department,
+                            style: TextStyle(
+                              color: isDark ? AppColors.darkTextDark : AppColors.textDark,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Save Changes',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedDepartment = newValue;
+                        });
+                      },
+                      validator: (val) =>
+                          val == null ? 'Select department' : null,
+                    ).animate().fade(duration: 350.ms, delay: 100.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                    const SizedBox(height: 16),
+
+                    // Semester Dropdown
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedSemester,
+                      dropdownColor: isDark ? AppColors.darkSurface : AppColors.surface,
+                      style: TextStyle(
+                        color: isDark ? AppColors.darkTextDark : AppColors.textDark,
+                      ),
+                      decoration: const InputDecoration(
+                        labelText: 'Semester',
+                        prefixIcon: Icon(Icons.calendar_month_outlined),
+                      ),
+                      hint: const Text('Select Semester'),
+                      items: _semesters.map((String semester) {
+                        return DropdownMenuItem<String>(
+                          value: semester,
+                          child: Text(
+                            semester,
+                            style: TextStyle(
+                              color: isDark ? AppColors.darkTextDark : AppColors.textDark,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedSemester = newValue;
+                        });
+                      },
+                      validator: (val) =>
+                          val == null ? 'Select semester' : null,
+                    ).animate().fade(duration: 350.ms, delay: 150.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                    const SizedBox(height: 16),
+
+                    // Phone Number
+                    TextFormField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      style: TextStyle(
+                        color: isDark ? AppColors.darkTextDark : AppColors.textDark,
+                      ),
+                      decoration: const InputDecoration(
+                        labelText: 'Phone Number',
+                        prefixIcon: Icon(Icons.phone_outlined),
+                      ),
+                      validator: (val) =>
+                          val == null || val.trim().isEmpty ? 'Enter phone number' : null,
+                    ).animate().fade(duration: 350.ms, delay: 200.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                    const SizedBox(height: 32),
+
+                    // Save Button
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _saveProfile,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Save Changes',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                    ).animate().fade(duration: 350.ms, delay: 250.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_spacing.dart';
@@ -24,10 +26,8 @@ class RequestDetailsScreen extends StatelessWidget {
       body: StreamBuilder<CampusRequest?>(
         stream: Get.find<RequestRepository>().watchRequest(requestId),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              !snapshot.hasData) {
-            return const LoadingView(message: 'Loading request...');
-          }
+          final isLoading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
+
           if (snapshot.hasError) {
             return ErrorView(
               message: 'Unable to load this request.',
@@ -37,7 +37,20 @@ class RequestDetailsScreen extends StatelessWidget {
               ),
             );
           }
-          final request = snapshot.data;
+
+          final request = snapshot.data ?? (isLoading ? const CampusRequest(
+            id: 'dummy',
+            userId: 'dummy',
+            title: 'Mock Request Title',
+            description: 'Mock Request description text showing details about the issue reported by the student for layout and visual styling test purposes.',
+            categoryId: 'Internet Issue',
+            location: 'Block B - Room 203',
+            priority: RequestPriority.medium,
+            imageUrls: [],
+            status: RequestStatus.submitted,
+            createdAt: null,
+          ) : null);
+
           if (request == null) {
             return const EmptyView(
               title: 'Request not found',
@@ -45,7 +58,11 @@ class RequestDetailsScreen extends StatelessWidget {
               icon: Icons.search_off_outlined,
             );
           }
-          return _RequestDetailsBody(request: request);
+
+          return Skeletonizer(
+            enabled: isLoading,
+            child: _RequestDetailsBody(request: request),
+          );
         },
       ),
     );
@@ -67,122 +84,127 @@ class _RequestDetailsBody extends StatelessWidget {
         final categoryName =
             matching.isEmpty ? request.categoryId : matching.first.name;
 
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screen,
-            AppSpacing.sm,
-            AppSpacing.screen,
-            AppSpacing.xxxl,
-          ),
-          children: [
-            Row(
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.sm,
+                AppSpacing.screen,
+                AppSpacing.xxxl,
+              ),
               children: [
-                StatusChip(status: request.status),
-                const Spacer(),
-                Text(
-                  request.displayId,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              request.title,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            AppCard(
-              child: Column(
-                children: [
-                  _DetailRow(
-                    icon: Icons.category_outlined,
-                    label: 'Category',
-                    value: categoryName,
-                  ),
-                  const Divider(height: 24),
-                  _DetailRow(
-                    icon: Icons.place_outlined,
-                    label: 'Location',
-                    value: request.location,
-                  ),
-                  const Divider(height: 24),
-                  _DetailRow(
-                    icon: Icons.flag_outlined,
-                    label: 'Priority',
-                    valueWidget: PriorityDot(priority: request.priority),
-                  ),
-                  const Divider(height: 24),
-                  _DetailRow(
-                    icon: Icons.event_outlined,
-                    label: 'Date Submitted',
-                    value: DateFormatters.dateTime(request.createdAt),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            const Text(
-              'Description',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            AppCard(
-              child: Text(
-                request.description,
-                style: const TextStyle(height: 1.45),
-              ),
-            ),
-            if (request.imageUrls.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.xl),
-              const Text(
-                'Attached Image',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppRadii.lg),
-                child: AspectRatio(
-                  aspectRatio: 16 / 10,
-                  child: Image.network(
-                    request.imageUrls.first,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
-                      color: AppColors.primaryLight,
-                      child: const Center(
-                        child: Icon(Icons.broken_image_outlined),
+                Row(
+                  children: [
+                    StatusChip(status: request.status),
+                    const Spacer(),
+                    Text(
+                      request.displayId,
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
+                  ],
+                ).animate().fade(duration: 300.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  request.title,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    height: 1.2,
                   ),
-                ),
-              ),
-            ],
-            if (request.resolutionInfo != null &&
-                request.resolutionInfo!.trim().isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.xl),
-              const Text(
-                'Resolution',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AppCard(
-                child: Text(request.resolutionInfo!),
-              ),
-            ],
-            const SizedBox(height: AppSpacing.xl),
-            const Text(
-              'Status',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                ).animate().fade(duration: 300.ms, delay: 50.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                const SizedBox(height: AppSpacing.xl),
+                AppCard(
+                  child: Column(
+                    children: [
+                      _DetailRow(
+                        icon: Icons.category_outlined,
+                        label: 'Category',
+                        value: categoryName,
+                      ),
+                      const Divider(height: 24),
+                      _DetailRow(
+                        icon: Icons.place_outlined,
+                        label: 'Location',
+                        value: request.location,
+                      ),
+                      const Divider(height: 24),
+                      _DetailRow(
+                        icon: Icons.flag_outlined,
+                        label: 'Priority',
+                        valueWidget: PriorityDot(priority: request.priority),
+                      ),
+                      const Divider(height: 24),
+                      _DetailRow(
+                        icon: Icons.event_outlined,
+                        label: 'Date Submitted',
+                        value: DateFormatters.dateTime(request.createdAt),
+                      ),
+                    ],
+                  ),
+                ).animate().fade(duration: 300.ms, delay: 100.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                const SizedBox(height: AppSpacing.xl),
+                const Text(
+                  'Description',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                ).animate().fade(duration: 300.ms, delay: 150.ms),
+                const SizedBox(height: AppSpacing.md),
+                AppCard(
+                  child: Text(
+                    request.description,
+                    style: const TextStyle(height: 1.45),
+                  ),
+                ).animate().fade(duration: 300.ms, delay: 150.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                if (request.imageUrls.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xl),
+                  const Text(
+                    'Attached Image',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                  ).animate().fade(duration: 300.ms, delay: 200.ms),
+                  const SizedBox(height: AppSpacing.md),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadii.lg),
+                    child: AspectRatio(
+                      aspectRatio: 16 / 10,
+                      child: Image.network(
+                        request.imageUrls.first,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Container(
+                          color: AppColors.primaryLight,
+                          child: const Center(
+                            child: Icon(Icons.broken_image_outlined),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ).animate().fade(duration: 300.ms, delay: 200.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                ],
+                if (request.resolutionInfo != null &&
+                    request.resolutionInfo!.trim().isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xl),
+                  const Text(
+                    'Resolution',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                  ).animate().fade(duration: 300.ms, delay: 250.ms),
+                  const SizedBox(height: AppSpacing.md),
+                  AppCard(
+                    child: Text(request.resolutionInfo!),
+                  ).animate().fade(duration: 300.ms, delay: 250.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                ],
+                const SizedBox(height: AppSpacing.xl),
+                const Text(
+                  'Status',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                ).animate().fade(duration: 300.ms, delay: 300.ms),
+                const SizedBox(height: AppSpacing.md),
+                _StatusOverview(request: request).animate().fade(duration: 300.ms, delay: 300.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+              ],
             ),
-            const SizedBox(height: AppSpacing.md),
-            _StatusOverview(request: request),
-          ],
+          ),
         );
       },
     );
@@ -214,7 +236,7 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary,
                 ),
@@ -258,7 +280,7 @@ class _StatusOverview extends StatelessWidget {
         }
 
         if (snapshot.hasError) {
-          return const AppCard(
+          return AppCard(
             child: Text(
               'Unable to load status history.',
               style: TextStyle(
@@ -277,11 +299,20 @@ class _StatusOverview extends StatelessWidget {
         return AppCard(
           child: Column(
             children: [
-              for (int index = 0; index < history.length; index++)
-                _TimelineEntry(
-                  entry: history[index],
-                  isLast: index == history.length - 1,
-                ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: history.length,
+                itemBuilder: (context, index) {
+                  final entry = history[index];
+                  final isLast = index == history.length - 1;
+
+                  return _TimelineItem(
+                    entry: entry,
+                    isLast: isLast,
+                  );
+                },
+              ),
             ],
           ),
         );
@@ -289,8 +320,8 @@ class _StatusOverview extends StatelessWidget {
     );
   }
 }
-class _TimelineEntry extends StatelessWidget {
-  const _TimelineEntry({
+class _TimelineItem extends StatelessWidget {
+  const _TimelineItem({
     required this.entry,
     required this.isLast,
   });
@@ -351,7 +382,7 @@ class _TimelineEntry extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     DateFormatters.dateTime(entry.createdAt),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
@@ -361,7 +392,7 @@ class _TimelineEntry extends StatelessWidget {
                   const SizedBox(height: 7),
                   Text(
                     entry.message,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       height: 1.4,
                       color: AppColors.textSecondary,
@@ -418,7 +449,7 @@ class _FallbackStatusTimeline extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Current request status',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     color: AppColors.textSecondary,
                   ),

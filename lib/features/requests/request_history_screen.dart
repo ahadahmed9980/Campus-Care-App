@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../data/models/request_model.dart';
 import '../../routes/app_routes.dart';
@@ -13,22 +15,34 @@ class RequestHistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(RequestHistoryController());
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8F8),
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF7F8F8),
       appBar: _RequestAppBar(
         showBackButton: showBackButton,
         controller: controller,
       ),
       body: SafeArea(
         top: false,
-        child: Column(
-          children: [
-            _SearchBar(controller: controller),
-            _StatusFilters(controller: controller),
-            const SizedBox(height: 4),
-            Expanded(child: _RequestBody(controller: controller)),
-          ],
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 850),
+            child: Column(
+              children: [
+                _SearchBar(controller: controller)
+                    .animate()
+                    .fade(duration: 300.ms)
+                    .slideY(begin: -0.1, end: 0, curve: Curves.easeOutQuad),
+                _StatusFilters(controller: controller)
+                    .animate()
+                    .fade(duration: 300.ms, delay: 50.ms)
+                    .slideY(begin: -0.05, end: 0, curve: Curves.easeOutQuad),
+                const SizedBox(height: 4),
+                Expanded(child: _RequestBody(controller: controller)),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -53,41 +67,31 @@ class _RequestAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       elevation: 0,
       scrolledUnderElevation: 0,
       automaticallyImplyLeading: false,
       titleSpacing: 16,
-      // leading: showBackButton
-      //     ? IconButton(
-      //         onPressed: Get.back,
-      //         icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-      //       )
-      //     : IconButton(
-      //         onPressed: () {
-      //           // Keep this available for future drawer integration.
-      //         },
-      //         icon: const Icon(Icons.menu_rounded, size: 24),
-      //       ),
-      title: const Text(
+      title: Text(
         'Requests',
         style: TextStyle(
-          color: Color(0xFF171717),
+          color: isDark ? Colors.white : const Color(0xFF171717),
           fontSize: 18,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.2,
         ),
-      ),
+      ).animate().fade(duration: 350.ms).slideX(begin: -0.1, end: 0, curve: Curves.easeOutQuad),
       actions: [
         IconButton(
           tooltip: 'Search',
           onPressed: () {
             controller.searchFocusNode.requestFocus();
           },
-          icon: const Icon(
+          icon: Icon(
             Icons.search_rounded,
-            color: Color(0xFF222222),
+            color: isDark ? Colors.white : const Color(0xFF222222),
             size: 25,
           ),
         ),
@@ -99,9 +103,9 @@ class _RequestAppBar extends StatelessWidget implements PreferredSizeWidget {
           icon: Stack(
             clipBehavior: Clip.none,
             children: [
-              const Icon(
+              Icon(
                 Icons.tune_rounded,
-                color: Color(0xFF222222),
+                color: isDark ? Colors.white : const Color(0xFF222222),
                 size: 23,
               ),
               Obx(() {
@@ -134,11 +138,12 @@ class _RequestAppBar extends StatelessWidget implements PreferredSizeWidget {
     BuildContext context,
     RequestHistoryController controller,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       builder: (_) {
         return _FilterSheet(controller: controller);
       },
@@ -157,20 +162,21 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
       child: TextField(
         controller: controller.searchController,
         focusNode: controller.searchFocusNode,
         textInputAction: TextInputAction.search,
-        style: const TextStyle(fontSize: 14, color: Color(0xFF222222)),
+        style: TextStyle(fontSize: 14, color: isDark ? Colors.white : const Color(0xFF222222)),
         decoration: InputDecoration(
           hintText: 'Search requests...',
-          hintStyle: const TextStyle(color: Color(0xFF9DA2A1), fontSize: 13),
-          prefixIcon: const Icon(
+          hintStyle: TextStyle(color: isDark ? const Color(0xFF888888) : const Color(0xFF9DA2A1), fontSize: 13),
+          prefixIcon: Icon(
             Icons.search_rounded,
-            color: Color(0xFF9DA2A1),
+            color: isDark ? const Color(0xFF888888) : const Color(0xFF9DA2A1),
             size: 21,
           ),
           suffixIcon: Obx(() {
@@ -180,26 +186,26 @@ class _SearchBar extends StatelessWidget {
 
             return IconButton(
               onPressed: controller.clearSearch,
-              icon: const Icon(
+              icon: Icon(
                 Icons.close_rounded,
                 size: 19,
-                color: Color(0xFF777777),
+                color: isDark ? const Color(0xFFB0B0B0) : const Color(0xFF777777),
               ),
             );
           }),
           filled: true,
-          fillColor: const Color(0xFFFAFAFA),
+          fillColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFFAFAFA),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
             vertical: 12,
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(11),
-            borderSide: const BorderSide(color: Color(0xFFE7E9E8)),
+            borderSide: BorderSide(color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFE7E9E8)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(11),
-            borderSide: const BorderSide(color: Color(0xFFE7E9E8)),
+            borderSide: BorderSide(color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFE7E9E8)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(11),
@@ -222,9 +228,10 @@ class _StatusFilters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 51,
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       padding: const EdgeInsets.only(left: 16, right: 16, bottom: 10),
       child: Obx(
         () => ListView(
@@ -270,8 +277,11 @@ class _StatusFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: selected ? const Color(0xFF18865C) : const Color(0xFFF4F5F5),
+      color: selected
+          ? const Color(0xFF18865C)
+          : (isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF4F5F5)),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
@@ -283,7 +293,9 @@ class _StatusFilterChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: selected ? Colors.white : const Color(0xFF565B5A),
+              color: selected
+                  ? Colors.white
+                  : (isDark ? const Color(0xFFB0B0B0) : const Color(0xFF565B5A)),
             ),
           ),
         ),
@@ -304,58 +316,73 @@ class _RequestBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF18865C)),
-        );
-      }
-
-      if (controller.errorMessage.value != null) {
+      if (controller.errorMessage.value != null && !controller.isLoading.value) {
         return _ErrorState(
           message: controller.errorMessage.value!,
           onRetry: controller.reload,
         );
       }
 
-      final requests = controller.filteredRequests;
+      final isLoading = controller.isLoading.value;
 
-      if (controller.requests.isEmpty) {
+      final requests = isLoading && controller.requests.isEmpty
+          ? List.generate(
+              5,
+              (index) => CampusRequest(
+                id: 'mock_$index',
+                userId: 'dummy',
+                title: 'Mock Request Title $index',
+                description: 'Mock Request Description text for spacing and layout testing.',
+                categoryId: 'internet',
+                location: 'Block A - Room 203',
+                priority: RequestPriority.medium,
+                imageUrls: const [],
+                status: RequestStatus.submitted,
+                createdAt: DateTime.now(),
+              ),
+            )
+          : controller.filteredRequests;
+
+      if (!isLoading && controller.requests.isEmpty) {
         return const _EmptyRequestsState();
       }
 
-      if (requests.isEmpty) {
+      if (!isLoading && requests.isEmpty) {
         return _NoResultsState(controller: controller);
       }
 
-      return RefreshIndicator(
-        color: const Color(0xFF18865C),
-        onRefresh: controller.reload,
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final horizontalPadding = constraints.maxWidth >= 700 ? 28.0 : 16.0;
+      return Skeletonizer(
+        enabled: isLoading,
+        child: RefreshIndicator(
+          color: const Color(0xFF18865C),
+          onRefresh: controller.reload,
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final horizontalPadding = constraints.maxWidth >= 700 ? 28.0 : 16.0;
 
-            return ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
-              padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
-                12,
-                horizontalPadding,
-                28,
-              ),
-              itemCount: requests.length,
-              separatorBuilder: (_, _) {
-                return const SizedBox(height: 10);
-              },
-              itemBuilder: (_, index) {
-                return _RequestCard(
-                  request: requests[index],
-                  controller: controller,
-                );
-              },
-            );
-          },
+              return ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  12,
+                  horizontalPadding,
+                  28,
+                ),
+                itemCount: requests.length,
+                separatorBuilder: (_, _) {
+                  return const SizedBox(height: 10);
+                },
+                itemBuilder: (_, index) {
+                  return _RequestCard(
+                    request: requests[index],
+                    controller: controller,
+                  ).animate().fade(duration: 250.ms, delay: (index * 30).ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad);
+                },
+              );
+            },
+          ),
         ),
       );
     });
@@ -374,8 +401,9 @@ class _RequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       elevation: 0,
       shadowColor: Colors.black.withValues(alpha: 0.07),
       borderRadius: BorderRadius.circular(14),
@@ -389,10 +417,13 @@ class _RequestCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFEBEDED), width: 0.8),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFEBEDED),
+              width: 0.8,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.035),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.035),
                 blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
@@ -515,6 +546,7 @@ class _RequestInformation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -522,11 +554,11 @@ class _RequestInformation extends StatelessWidget {
           request.title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             height: 1.25,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF222222),
+            color: isDark ? const Color(0xFFE0E0E0) : const Color(0xFF222222),
           ),
         ),
         const SizedBox(height: 4),
@@ -534,9 +566,9 @@ class _RequestInformation extends StatelessWidget {
           _categoryName(request.categoryId),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Color(0xFF555A59),
+            color: isDark ? const Color(0xFFB0B0B0) : const Color(0xFF555A59),
             height: 1.2,
           ),
         ),
@@ -545,9 +577,9 @@ class _RequestInformation extends StatelessWidget {
           request.location,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Color(0xFF555A59),
+            color: isDark ? const Color(0xFFB0B0B0) : const Color(0xFF555A59),
             height: 1.2,
           ),
         ),
@@ -556,9 +588,9 @@ class _RequestInformation extends StatelessWidget {
           '${request.displayId} • ${_formatDate(request.createdAt)}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10.5,
-            color: Color(0xFF8A8F8E),
+            color: isDark ? const Color(0xFF888888) : const Color(0xFF8A8F8E),
             height: 1.2,
           ),
         ),
@@ -617,14 +649,15 @@ class _RequestTrailing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        const Icon(
+        Icon(
           Icons.chevron_right_rounded,
           size: 21,
-          color: Color(0xFF777D7B),
+          color: isDark ? const Color(0xFF888888) : const Color(0xFF777D7B),
         ),
         const SizedBox(height: 18),
         _StatusBadge(status: status),
@@ -640,7 +673,8 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = _statusConfig(status);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final config = _statusConfig(status, isDark);
 
     return Container(
       constraints: const BoxConstraints(maxWidth: 96),
@@ -662,37 +696,63 @@ class _StatusBadge extends StatelessWidget {
     );
   }
 
-  _StatusConfig _statusConfig(RequestStatus status) {
-    switch (status) {
-      case RequestStatus.submitted:
-        return const _StatusConfig(
-          background: Color(0xFFF0F2F2),
-          foreground: Color(0xFF656B69),
-        );
-
-      case RequestStatus.underReview:
-        return const _StatusConfig(
-          background: Color(0xFFDDEEFF),
-          foreground: Color(0xFF2580C7),
-        );
-
-      case RequestStatus.inProgress:
-        return const _StatusConfig(
-          background: Color(0xFFFFE9C9),
-          foreground: Color(0xFFE89326),
-        );
-
-      case RequestStatus.resolved:
-        return const _StatusConfig(
-          background: Color(0xFFDDF4E9),
-          foreground: Color(0xFF269764),
-        );
-
-      case RequestStatus.rejected:
-        return const _StatusConfig(
-          background: Color(0xFFFFE0E0),
-          foreground: Color(0xFFD43B3B),
-        );
+  _StatusConfig _statusConfig(RequestStatus status, bool isDark) {
+    if (isDark) {
+      switch (status) {
+        case RequestStatus.submitted:
+          return const _StatusConfig(
+            background: Color(0xFF2A2D2D),
+            foreground: Color(0xFFA6ADAB),
+          );
+        case RequestStatus.underReview:
+          return const _StatusConfig(
+            background: Color(0xFF132D4C),
+            foreground: Color(0xFF6FA8E8),
+          );
+        case RequestStatus.inProgress:
+          return const _StatusConfig(
+            background: Color(0xFF4C3312),
+            foreground: Color(0xFFFBB040),
+          );
+        case RequestStatus.resolved:
+          return const _StatusConfig(
+            background: Color(0xFF0F3A26),
+            foreground: Color(0xFF4EDB95),
+          );
+        case RequestStatus.rejected:
+          return const _StatusConfig(
+            background: Color(0xFF4E1618),
+            foreground: Color(0xFFFA6A6F),
+          );
+      }
+    } else {
+      switch (status) {
+        case RequestStatus.submitted:
+          return const _StatusConfig(
+            background: Color(0xFFF0F2F2),
+            foreground: Color(0xFF656B69),
+          );
+        case RequestStatus.underReview:
+          return const _StatusConfig(
+            background: Color(0xFFDDEEFF),
+            foreground: Color(0xFF2580C7),
+          );
+        case RequestStatus.inProgress:
+          return const _StatusConfig(
+            background: Color(0xFFFFE9C9),
+            foreground: Color(0xFFE89326),
+          );
+        case RequestStatus.resolved:
+          return const _StatusConfig(
+            background: Color(0xFFDDF4E9),
+            foreground: Color(0xFF269764),
+          );
+        case RequestStatus.rejected:
+          return const _StatusConfig(
+            background: Color(0xFFFFE0E0),
+            foreground: Color(0xFFD43B3B),
+          );
+      }
     }
   }
 }
@@ -735,6 +795,7 @@ class _FilterSheetState extends State<_FilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
@@ -742,38 +803,40 @@ class _FilterSheetState extends State<_FilterSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Filter Requests',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black),
               ),
               const SizedBox(height: 20),
 
-              const Text(
+              Text(
                 'Status',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black),
               ),
               const SizedBox(height: 8),
 
               DropdownButtonFormField<RequestStatus?>(
                 key: ValueKey(status),
                 initialValue: status,
+                dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: const Color(0xFFF7F8F8),
+                  fillColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF7F8F8),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                 ),
                 items: [
-                  const DropdownMenuItem<RequestStatus?>(
+                  DropdownMenuItem<RequestStatus?>(
                     value: null,
-                    child: Text('All statuses'),
+                    child: Text('All statuses', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
                   ),
                   ...RequestStatus.values.map((item) {
                     return DropdownMenuItem<RequestStatus?>(
                       value: item,
-                      child: Text(item.label),
+                      child: Text(item.label, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
                     );
                   }),
                 ],
@@ -786,32 +849,34 @@ class _FilterSheetState extends State<_FilterSheet> {
 
               const SizedBox(height: 18),
 
-              const Text(
+              Text(
                 'Category',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black),
               ),
               const SizedBox(height: 8),
 
               DropdownButtonFormField<String?>(
                 key: ValueKey(categoryId),
                 initialValue: categoryId,
+                dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: const Color(0xFFF7F8F8),
+                  fillColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF7F8F8),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                 ),
                 items: [
-                  const DropdownMenuItem<String?>(
+                  DropdownMenuItem<String?>(
                     value: null,
-                    child: Text('All categories'),
+                    child: Text('All categories', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
                   ),
                   ...widget.controller.categories.map((category) {
                     return DropdownMenuItem<String?>(
                       value: category.id,
-                      child: Text(category.name),
+                      child: Text(category.name, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
                     );
                   }),
                 ],
@@ -824,9 +889,9 @@ class _FilterSheetState extends State<_FilterSheet> {
 
               const SizedBox(height: 18),
 
-              const Text(
+              Text(
                 'Date',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black),
               ),
               const SizedBox(height: 8),
 
@@ -834,6 +899,10 @@ class _FilterSheetState extends State<_FilterSheet> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: isDark ? Colors.white : null,
+                        side: isDark ? const BorderSide(color: Color(0xFF2C2C2C)) : null,
+                      ),
                       onPressed: () => _pickDate(true),
                       child: Text(from == null ? 'From' : _dateText(from!)),
                     ),
@@ -841,6 +910,10 @@ class _FilterSheetState extends State<_FilterSheet> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: isDark ? Colors.white : null,
+                        side: isDark ? const BorderSide(color: Color(0xFF2C2C2C)) : null,
+                      ),
                       onPressed: () => _pickDate(false),
                       child: Text(to == null ? 'To' : _dateText(to!)),
                     ),
@@ -854,6 +927,10 @@ class _FilterSheetState extends State<_FilterSheet> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: isDark ? Colors.white : null,
+                        side: isDark ? const BorderSide(color: Color(0xFF2C2C2C)) : null,
+                      ),
                       onPressed: () {
                         setState(() {
                           status = null;
@@ -934,23 +1011,35 @@ class _EmptyRequestsState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(Icons.assignment_outlined, size: 54, color: Color(0xFF9AA09E)),
-            SizedBox(height: 14),
+          children: [
+            Icon(
+              Icons.assignment_outlined,
+              size: 54,
+              color: isDark ? const Color(0xFF6E7472) : const Color(0xFF9AA09E),
+            ),
+            const SizedBox(height: 14),
             Text(
               'No requests yet',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : Colors.black,
+              ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
               'Your submitted requests will appear here.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: Color(0xFF747A78)),
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? const Color(0xFFB0B0B0) : const Color(0xFF747A78),
+              ),
             ),
           ],
         ),
@@ -966,30 +1055,42 @@ class _NoResultsState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.search_off_rounded,
               size: 50,
-              color: Color(0xFF9AA09E),
+              color: isDark ? const Color(0xFF6E7472) : const Color(0xFF9AA09E),
             ),
             const SizedBox(height: 14),
-            const Text(
+            Text(
               'No matching requests',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : Colors.black,
+              ),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Try changing your search or filters.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: Color(0xFF747A78)),
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? const Color(0xFFB0B0B0) : const Color(0xFF747A78),
+              ),
             ),
             const SizedBox(height: 18),
             OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: isDark ? Colors.white : null,
+                side: isDark ? const BorderSide(color: Color(0xFF2C2C2C)) : null,
+              ),
               onPressed: () {
                 controller.clearSearch();
                 controller.clearFilters();
@@ -1011,27 +1112,35 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.cloud_off_rounded,
               size: 50,
-              color: Color(0xFF9AA09E),
+              color: isDark ? const Color(0xFF6E7472) : const Color(0xFF9AA09E),
             ),
             const SizedBox(height: 14),
-            const Text(
+            Text(
               'Unable to load requests',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : Colors.black,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: Color(0xFF747A78)),
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? const Color(0xFFB0B0B0) : const Color(0xFF747A78),
+              ),
             ),
             const SizedBox(height: 18),
             FilledButton(

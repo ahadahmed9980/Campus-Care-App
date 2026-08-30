@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
 import '../../theme/app_theme.dart';
@@ -44,101 +45,106 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       appBar: AppBar(
         title: const Text('Change Password'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // ── Header Icon ──
-              Container(
-                width: 80,
-                height: 80,
-                margin: const EdgeInsets.only(bottom: 28),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.primary.withValues(alpha: 0.2) : AppColors.primaryLight,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.lock_person_outlined,
-                  color: AppColors.primary,
-                  size: 38,
-                ),
-              ),
-
-              // ── Input Fields Card ──
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurface : AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: isDark ? Border.all(color: AppColors.darkBorder, width: 1) : null,
-                ),
-                child: Column(
-                  children: [
-                    // Current Password
-                    AppTextField(
-                      label: 'Current Password',
-                      hint: 'Enter current password',
-                      controller: _currentCtrl,
-                      prefixIcon: Icons.lock_outline_rounded,
-                      isPassword: true,
-                      validator: (v) =>
-                          v == null || v.isEmpty ? 'Required' : null,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  // ── Header Icon ──
+                  Container(
+                    width: 80,
+                    height: 80,
+                    margin: const EdgeInsets.only(bottom: 28),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.primary.withValues(alpha: 0.2) : AppColors.primaryLight,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: 16),
-
-                    // New Password
-                    AppTextField(
-                      label: 'New Password',
-                      hint: 'Enter new password',
-                      controller: _newCtrl,
-                      prefixIcon: Icons.lock_reset_rounded,
-                      isPassword: true,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Required';
-                        if (v.length < 6) {
-                          return 'At least 6 characters required';
-                        }
-                        if (!v.contains(RegExp(r'[A-Z]'))) {
-                          return 'Add at least one uppercase letter';
-                        }
-                        return null;
-                      },
+                    child: const Icon(
+                      Icons.lock_person_outlined,
+                      color: AppColors.primary,
+                      size: 38,
                     ),
-                    const SizedBox(height: 16),
+                  ).animate().fade(duration: 400.ms).scale(begin: const Offset(0.7, 0.7), end: const Offset(1, 1), curve: Curves.bounceOut),
 
-                    // Confirm New Password
-                    AppTextField(
-                      label: 'Confirm New Password',
-                      hint: 'Confirm new password',
-                      controller: _confirmCtrl,
-                      prefixIcon: Icons.lock_outline_rounded,
-                      isPassword: true,
-                      textInputAction: TextInputAction.done,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Required';
-                        if (v != _newCtrl.text) {
-                          return 'Passwords do not match';
-                        }
-                        return null;
-                      },
+                  // ── Input Fields Card ──
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.darkSurface : AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: isDark ? Border.all(color: AppColors.darkBorder, width: 1) : null,
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 28),
+                    child: Column(
+                      children: [
+                        // Current Password
+                        AppTextField(
+                          label: 'Current Password',
+                          hint: 'Enter current password',
+                          controller: _currentCtrl,
+                          prefixIcon: Icons.lock_outline_rounded,
+                          isPassword: true,
+                          validator: (v) =>
+                              v == null || v.isEmpty ? 'Required' : null,
+                        ),
+                        const SizedBox(height: 16),
 
-              // ── Submit Button ──
-              Obx(
-                () => PrimaryButton(
-                  label: 'Update Password',
-                  onPressed: _change,
-                  isLoading: _authController.isLoading.value,
-                ),
+                        // New Password
+                        AppTextField(
+                          label: 'New Password',
+                          hint: 'Enter new password',
+                          controller: _newCtrl,
+                          prefixIcon: Icons.lock_reset_rounded,
+                          isPassword: true,
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Required';
+                            if (v.length < 6) {
+                              return 'At least 6 characters required';
+                            }
+                            if (!v.contains(RegExp(r'[A-Z]'))) {
+                              return 'Add at least one uppercase letter';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Confirm New Password
+                        AppTextField(
+                          label: 'Confirm New Password',
+                          hint: 'Confirm new password',
+                          controller: _confirmCtrl,
+                          prefixIcon: Icons.lock_outline_rounded,
+                          isPassword: true,
+                          textInputAction: TextInputAction.done,
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Required';
+                            if (v != _newCtrl.text) {
+                              return 'Passwords do not match';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ).animate().fade(duration: 350.ms, delay: 100.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                  const SizedBox(height: 28),
+
+                  // ── Submit Button ──
+                  Obx(
+                    () => PrimaryButton(
+                      label: 'Update Password',
+                      onPressed: _change,
+                      isLoading: _authController.isLoading.value,
+                    ),
+                  ).animate().fade(duration: 350.ms, delay: 180.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
+                  const SizedBox(height: 40),
+                ],
               ),
-              const SizedBox(height: 40),
-            ],
+            ),
           ),
         ),
       ),

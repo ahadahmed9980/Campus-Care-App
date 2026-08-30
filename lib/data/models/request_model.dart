@@ -163,6 +163,9 @@ class CampusRequest {
   final DateTime? updatedAt;
 
   String get displayId {
+    if (id.startsWith('REQ-')) {
+      return id;
+    }
     final suffix = id.length >= 4 ? id.substring(0, 4).toUpperCase() : id.toUpperCase();
     final year = createdAt?.year ?? DateTime.now().year;
     return 'REQ-$year-$suffix';

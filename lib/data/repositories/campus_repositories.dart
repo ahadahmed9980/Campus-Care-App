@@ -13,11 +13,6 @@ class UserRepository {
   final FirebaseFirestore _firestore;
 
   Future<StudentUser> getStudent(String uid) async {
-    final studentDoc = await _firestore.collection('students').doc(uid).get();
-    if (studentDoc.exists) {
-      return StudentUser.fromDoc(studentDoc);
-    }
-
     final userDoc = await _firestore.collection('users').doc(uid).get();
     if (userDoc.exists) {
       return StudentUser.fromDoc(userDoc);
@@ -165,7 +160,19 @@ class RequestRepository {
     required RequestPriority priority,
     XFile? image,
   }) async {
-    final doc = _requests.doc();
+    final counterRef = _firestore.collection('counters').doc('requests');
+    final nextId = await _firestore.runTransaction<String>((transaction) async {
+      final counterSnapshot = await transaction.get(counterRef);
+      int currentCount = 0;
+      if (counterSnapshot.exists) {
+        currentCount = counterSnapshot.data()?['currentCount'] as int? ?? 0;
+      }
+      final newCount = currentCount + 1;
+      transaction.set(counterRef, {'currentCount': newCount});
+      return 'REQ-${newCount.toString().padLeft(7, '0')}';
+    });
+
+    final doc = _requests.doc(nextId);
     final now = FieldValue.serverTimestamp();
 
     await doc.set({

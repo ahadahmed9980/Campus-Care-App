@@ -19,7 +19,7 @@ class PrioritySelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Priority',
           style: TextStyle(
             fontSize: 13,

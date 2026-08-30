@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../controllers/connectivity_controller.dart';
 import '../../core/utils/request_validator.dart';
 import '../../data/models/campus_models.dart';
 import '../../data/models/request_model.dart';
@@ -89,6 +91,15 @@ class SubmitRequestController extends ChangeNotifier {
       error = validationError;
       notifyListeners();
       return null;
+    }
+
+    if (Get.isRegistered<ConnectivityController>()) {
+      final conn = Get.find<ConnectivityController>();
+      if (!conn.isConnected.value) {
+        error = 'No Internet Connection. Please check your connection and try again.';
+        notifyListeners();
+        return null;
+      }
     }
 
     submitting = true;
