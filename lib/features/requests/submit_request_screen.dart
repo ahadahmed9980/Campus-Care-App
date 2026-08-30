@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_spacing.dart';
@@ -188,7 +189,7 @@ class _SubmitRequestViewState extends State<_SubmitRequestView> {
                         const SizedBox(height: AppSpacing.lg),
                         ImageAttachmentBox(
                           image: controller.image,
-                          onAdd: controller.pickImage,
+                          onAdd: () => _showImageSourceBottomSheet(context, controller),
                           onRemove: controller.removeImage,
                         ).animate().fade(duration: 300.ms, delay: 250.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
                         const SizedBox(height: AppSpacing.xxl),
@@ -203,6 +204,59 @@ class _SubmitRequestViewState extends State<_SubmitRequestView> {
                 ),
               ),
       ),
+    );
+  }
+
+  void _showImageSourceBottomSheet(BuildContext context, SubmitRequestController controller) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadii.xl)),
+          ),
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.xxl,
+            AppSpacing.xl,
+            AppSpacing.xxl,
+            MediaQuery.of(context).padding.bottom + AppSpacing.xl,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select Image Source',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined, color: AppColors.primary),
+                title: const Text('Choose from Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  controller.pickImage(ImageSource.gallery);
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined, color: AppColors.primary),
+                title: const Text('Take a Photo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  controller.pickImage(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

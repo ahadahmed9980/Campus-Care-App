@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/campus_models.dart';
 import '../models/request_model.dart';
 import '../services/storage_service.dart';
+import '../services/cloudinary_service.dart';
 
 class UserRepository {
   UserRepository({FirebaseFirestore? firestore})
@@ -99,6 +100,69 @@ class AnnouncementRepository {
       return 0;
     }
   }
+
+  Future<List<AnnouncementPreview>> getPublishedAnnouncements() async {
+    try {
+      final snapshot = await _firestore
+          .collection('announcements')
+          .orderBy('createdAt', descending: true)
+          .get();
+      return snapshot.docs
+          .where((doc) => doc.data()['isPublished'] != false)
+          .map(AnnouncementPreview.fromDoc)
+          .toList();
+    } catch (_) {
+      // Fallback: get all and sort in memory
+      try {
+        final snapshot = await _firestore.collection('announcements').get();
+        final list = snapshot.docs
+            .where((doc) => doc.data()['isPublished'] != false)
+            .map(AnnouncementPreview.fromDoc)
+            .toList();
+        list.sort((a, b) {
+          final aDate = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final bDate = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return bDate.compareTo(aDate);
+        });
+        return list;
+      } catch (_) {
+        return [];
+      }
+    }
+  }
+}
+
+class CampusInfoRepository {
+  CampusInfoRepository({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _firestore;
+
+  Future<List<CampusInfo>> getCampusInfoList() async {
+    try {
+      final snapshot = await _firestore
+          .collection('campusInformation')
+          .orderBy('category')
+          .get();
+      return snapshot.docs
+          .where((doc) => doc.data()['isActive'] != false)
+          .map(CampusInfo.fromDoc)
+          .toList();
+    } catch (_) {
+      // Fallback: get all and sort in memory
+      try {
+        final snapshot = await _firestore.collection('campusInformation').get();
+        final list = snapshot.docs
+            .where((doc) => doc.data()['isActive'] != false)
+            .map(CampusInfo.fromDoc)
+            .toList();
+        list.sort((a, b) => a.category.toLowerCase().compareTo(b.category.toLowerCase()));
+        return list;
+      } catch (_) {
+        return [];
+      }
+    }
+  }
 }
 
 class RequestRepository {
@@ -109,6 +173,7 @@ class RequestRepository {
         _storage = storage ?? StorageService();
 
   final FirebaseFirestore _firestore;
+  // ignore: unused_field
   final StorageService _storage;
 
   CollectionReference<Map<String, dynamic>> get _requests =>
@@ -183,6 +248,7 @@ class RequestRepository {
       'location': location.trim(),
       'priority': priority.firestoreValue,
       'imageUrls': <String>[],
+      'imageUrl': '',
       'status': RequestStatus.submitted.firestoreValue,
       'assignedDepartmentId': null,
       'resolutionInfo': null,
@@ -202,14 +268,19 @@ class RequestRepository {
 
     if (image != null) {
       try {
-        final url = await _storage.uploadRequestImage(
-          requestId: doc.id,
-          image: image,
+        final bytes = await image.readAsBytes();
+        final url = await CloudinaryService.uploadImage(
+          bytes: bytes,
+          fileName: image.name,
+          folderName: 'requests',
         );
-        await doc.update({
-          'imageUrls': [url],
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+        if (url != null) {
+          await doc.update({
+            'imageUrl': url,
+            'imageUrls': [url],
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
       } catch (_) {
         // Keep the request even if the optional image upload fails.
       }

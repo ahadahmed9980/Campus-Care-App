@@ -16,6 +16,7 @@ class InitialBinding extends Bindings {
     Get.put<RequestRepository>(RequestRepository(), permanent: true);
     Get.put<CategoryRepository>(CategoryRepository(), permanent: true);
     Get.put<AnnouncementRepository>(AnnouncementRepository(), permanent: true);
+    Get.put<CampusInfoRepository>(CampusInfoRepository(), permanent: true);
     Get.put<NotificationRepository>(NotificationRepository(), permanent: true);
     Get.lazyPut<NotificationService>(() => NotificationService(), fenix: true);
     Get.put<NotificationController>(

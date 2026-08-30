@@ -6,6 +6,7 @@ import '../../controllers/home_controller.dart';
 import '../../features/dashboard/dashboard_screen.dart';
 // import '../../features/requests/simple_request_list_screen.dart';
 import '../../theme/app_theme.dart';
+import '../announcements/announcements_screen.dart';
 import '../profile/profile_screen.dart';
 
 class HomeScreen extends GetView<HomeController> {
@@ -21,8 +22,8 @@ class HomeScreen extends GetView<HomeController> {
           index: controller.currentIndex.value,
           children: const [
             DashboardScreen(),
-             RequestHistoryScreen(showBackButton: false),
-            _AnnouncementsTab(),
+            RequestHistoryScreen(showBackButton: false),
+            AnnouncementsScreen(),
             ProfileScreen(),
           ],
         ),
@@ -82,28 +83,3 @@ class HomeScreen extends GetView<HomeController> {
   }
 }
 
-class _AnnouncementsTab extends StatelessWidget {
-  const _AnnouncementsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
-      appBar: AppBar(
-        title: const Text('Announcements'),
-        backgroundColor: isDark ? AppColors.darkSurface : AppColors.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: Center(
-        child: Text(
-          'No announcements yet',
-          style: TextStyle(
-            color: isDark ? AppColors.darkTextLight : AppColors.textLight,
-          ),
-        ),
-      ),
-    );
-  }
-}

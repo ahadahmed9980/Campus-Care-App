@@ -137,6 +137,7 @@ class CampusRequest {
     required this.location,
     required this.priority,
     required this.imageUrls,
+    this.imageUrl = '',
     required this.status,
     this.assignedDepartmentId,
     this.resolutionInfo,
@@ -154,6 +155,7 @@ class CampusRequest {
   final String location;
   final RequestPriority priority;
   final List<String> imageUrls;
+  final String imageUrl;
   final RequestStatus status;
   final String? assignedDepartmentId;
   final String? resolutionInfo;
@@ -177,6 +179,19 @@ class CampusRequest {
   }
 
   factory CampusRequest.fromMap(String id, Map<String, dynamic> data) {
+    final singleUrl = data['imageUrl'] as String? ?? '';
+    final listUrls = (data['imageUrls'] as List<dynamic>? ?? const [])
+        .map((item) => item.toString())
+        .where((item) => item.isNotEmpty)
+        .toList();
+
+    final finalUrls = <String>[];
+    if (singleUrl.isNotEmpty) {
+      finalUrls.add(singleUrl);
+    } else if (listUrls.isNotEmpty) {
+      finalUrls.addAll(listUrls);
+    }
+
     return CampusRequest(
       id: id,
       userId: data['userId'] as String? ?? '',
@@ -185,10 +200,8 @@ class CampusRequest {
       categoryId: data['categoryId'] as String? ?? '',
       location: data['location'] as String? ?? '',
       priority: RequestPriority.fromString(data['priority'] as String?),
-      imageUrls: (data['imageUrls'] as List<dynamic>? ?? const [])
-          .map((item) => item.toString())
-          .where((item) => item.isNotEmpty)
-          .toList(),
+      imageUrls: finalUrls,
+      imageUrl: finalUrls.isNotEmpty ? finalUrls.first : '',
       status: RequestStatus.fromString(data['status'] as String?),
       assignedDepartmentId: data['assignedDepartmentId'] as String?,
       resolutionInfo: data['resolutionInfo'] as String?,

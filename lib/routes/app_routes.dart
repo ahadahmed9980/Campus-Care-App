@@ -12,4 +12,6 @@ abstract class AppRoutes {
   static const submitRequest = '/requests/submit';
   static const requestDetails = '/requests/details';
   static const requestHistory = '/requests/history';
+  static const campusInfo = '/campus-info';
+  static const campusInfoDetail = '/campus-info/detail';
 }

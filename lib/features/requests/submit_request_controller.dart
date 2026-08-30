@@ -60,9 +60,9 @@ class SubmitRequestController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> pickImage() async {
+  Future<void> pickImage(ImageSource source) async {
     final picked = await _picker.pickImage(
-      source: ImageSource.gallery,
+      source: source,
       imageQuality: 75,
       maxWidth: 1600,
     );

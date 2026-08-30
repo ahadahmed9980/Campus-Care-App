@@ -187,13 +187,7 @@ class _DashboardView extends StatelessWidget {
               RequestEntryType.complaint,
             ),
             onMyRequests: () => _openMyRequests(context),
-            onCampusInfo: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Campus Info is owned by Developer 4.'),
-                ),
-              );
-            },
+            onCampusInfo: () => Get.toNamed(AppRoutes.campusInfo),
           ).animate().fade(duration: 350.ms, delay: 240.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
           const SizedBox(height: AppSpacing.xl),
           const _SectionTitle('Latest Request')

@@ -15,6 +15,8 @@ import '../screens/auth/register_screen.dart';
 import '../screens/auth/splash_screen.dart';
 
 import '../screens/home/home_screen.dart';
+import '../screens/campus_info/campus_info_screen.dart';
+import '../screens/campus_info/campus_info_detail_screen.dart';
 import '../screens/profile/change_password_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/notifications_screen.dart';
@@ -99,6 +101,14 @@ class AppPages {
     GetPage(
       name: AppRoutes.requestHistory,
       page: () => const RequestHistoryScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.campusInfo,
+      page: () => const CampusInfoScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.campusInfoDetail,
+      page: () => const CampusInfoDetailScreen(),
     ),
   ];
 }
