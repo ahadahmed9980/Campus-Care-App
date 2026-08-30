@@ -230,7 +230,19 @@ class RequestRepository {
         'expiresAt': null,
       });
     } catch (_) {
-      // Notification write is best-effort and owned with Developer 3.
+      // Notification write is best-effort.
+    }
+
+    try {
+      await _firestore.collection('admin_notifications').add({
+        'title': 'New Request: ${title.trim()}',
+        'message': 'A new request has been submitted by student.',
+        'requestId': doc.id,
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (_) {
+      // Admin notification write is best-effort.
     }
 
     return doc.id;
