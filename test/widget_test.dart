@@ -40,10 +40,7 @@ void main() {
         RequestStatus.fromString('under_review'),
         RequestStatus.underReview,
       );
-      expect(
-        RequestStatus.fromString('in_progress'),
-        RequestStatus.inProgress,
-      );
+      expect(RequestStatus.fromString('in_progress'), RequestStatus.inProgress);
       expect(RequestStatus.fromString('submitted').isOpen, isTrue);
       expect(RequestStatus.resolved.isOpen, isFalse);
     });

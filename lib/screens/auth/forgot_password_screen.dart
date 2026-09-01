@@ -42,20 +42,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : AppColors.surface,
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 28),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
 
                   // ── Back ──
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                       onPressed: () => Get.back(),
                       icon: Icon(
                         Icons.arrow_back,
@@ -63,7 +67,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 20),
 
                   // ── Header ──
                   Text(
@@ -84,14 +88,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       height: 1.5,
                     ),
                   ).animate().fade(duration: 350.ms, delay: 50.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
                   if (!_emailSent) ...[
                     // ── Reset Form Icon ──
                     Center(
                       child: Container(
-                        width: 100,
-                        height: 100,
+                        width: 90,
+                        height: 90,
                         decoration: BoxDecoration(
                           color: isDark ? const Color(0xFF1E293B) : AppColors.primaryLight,
                           shape: BoxShape.circle,
@@ -99,20 +103,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         child: const Center(
                           child: Icon(
                             Icons.lock_reset_rounded,
-                            size: 48,
+                            size: 44,
                             color: AppColors.primary,
                           ),
                         ),
                       ),
                     ).animate().fade(duration: 350.ms, delay: 100.ms).scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1), curve: Curves.bounceOut),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 32),
 
                     // ── Form ──
                     Form(
                       key: _formKey,
                       child: AppTextField(
                         label: 'University Email',
-                        hint: '', // Required parameter ko empty string se satisfy kiya gaya hai
+                        hint: '',
                         controller: _emailCtrl,
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
@@ -129,7 +133,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         },
                       ),
                     ).animate().fade(duration: 350.ms, delay: 150.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
 
                     Obx(
                       () => PrimaryButton(
@@ -145,8 +149,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       child: Column(
                         children: [
                           Container(
-                            width: 100,
-                            height: 100,
+                            width: 90,
+                            height: 90,
                             decoration: BoxDecoration(
                               color: isDark ? const Color(0xFF064E3B) : AppColors.successLight,
                               shape: BoxShape.circle,
@@ -154,12 +158,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             child: const Center(
                               child: Icon(
                                 Icons.mark_email_read_outlined,
-                                size: 48,
+                                size: 44,
                                 color: AppColors.success,
                               ),
                             ),
                           ).animate().fade(duration: 350.ms).scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1), curve: Curves.bounceOut),
-                          const SizedBox(height: 28),
+                          const SizedBox(height: 24),
                           Text(
                             'Check your email!',
                             style: TextStyle(
@@ -178,7 +182,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               height: 1.6,
                             ),
                           ).animate().fade(duration: 350.ms, delay: 150.ms).slideY(begin: 0.1, end: 0),
-                          const SizedBox(height: 40),
+                          const SizedBox(height: 32),
                           PrimaryButton(
                             label: 'Back to Login',
                             onPressed: () => Get.back(),
@@ -198,7 +202,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
