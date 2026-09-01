@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -31,6 +33,7 @@ class NotificationController extends GetxController {
   final isMarkingAllRead = false.obs;
 
   Stream<List<CampusNotification>>? _notificationStream;
+  StreamSubscription<List<CampusNotification>>? _notificationSubscription;
 
   @override
   void onInit() {
@@ -69,10 +72,11 @@ class NotificationController extends GetxController {
     isLoading.value = true;
     errorMessage.value = null;
 
+    _notificationSubscription?.cancel();
     _notificationStream =
         _notificationRepository.watchUserNotifications(user.uid);
 
-    _notificationStream!.listen(
+    _notificationSubscription = _notificationStream!.listen(
       (items) {
         notifications.assignAll(items);
         isLoading.value = false;
@@ -301,5 +305,13 @@ class NotificationController extends GetxController {
     if (Get.currentRoute != AppRoutes.notifications) {
       Get.toNamed(AppRoutes.notifications);
     }
+  }
+
+  @override
+  void onClose() {
+    _notificationSubscription?.cancel();
+    _notificationService.onForegroundMessage = null;
+    _notificationService.onMessageOpened = null;
+    super.onClose();
   }
 }

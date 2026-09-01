@@ -55,10 +55,14 @@ class AuthController extends GetxController {
         Get.offAllNamed(AppRoutes.home);
       }
     } catch (e) {
+      debugPrint('Google sign-in controller error: $e');
       Get.snackbar(
         'Google sign-in failed',
         e.toString(),
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFE53935),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
       );
     } finally {
       isGoogleLoading.value = false;

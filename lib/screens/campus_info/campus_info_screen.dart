@@ -14,7 +14,6 @@ class CampusInfoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final controller = Get.put(CampusInfoController());
-    final searchController = TextEditingController();
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
@@ -40,7 +39,7 @@ class CampusInfoScreen extends StatelessWidget {
               AppSpacing.sm,
             ),
             child: TextField(
-              controller: searchController,
+              controller: controller.searchController,
               onChanged: (val) => controller.searchQuery.value = val,
               style: TextStyle(
                 color: isDark ? Colors.white : AppColors.textDark,
@@ -58,10 +57,7 @@ class CampusInfoScreen extends StatelessWidget {
                   if (controller.searchQuery.value.isNotEmpty) {
                     return IconButton(
                       icon: const Icon(Icons.clear_rounded),
-                      onPressed: () {
-                        searchController.clear();
-                        controller.searchQuery.value = '';
-                      },
+                      onPressed: controller.clearSearch,
                     );
                   }
                   return const SizedBox.shrink();

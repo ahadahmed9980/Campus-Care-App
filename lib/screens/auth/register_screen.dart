@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
@@ -118,26 +119,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _fullNameController,
                       textCapitalization: TextCapitalization.words,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z\s\.\'-]")),
+                        LengthLimitingTextInputFormatter(50),
+                      ],
                       style: TextStyle(color: isDark ? Colors.white : Colors.black),
                       decoration: const InputDecoration(
                         labelText: 'Full Name',
+                        hintText: 'e.g. Ali Ahmed',
                         prefixIcon: Icon(Icons.person_outline),
                       ),
-                      validator: (val) =>
-                          val == null || val.trim().isEmpty ? 'Enter your full name' : null,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) return 'Enter your full name';
+                        final name = val.trim();
+                        if (RegExp(r'[0-9]').hasMatch(name)) return 'Name must not contain numbers';
+                        if (!RegExp(r"^[a-zA-Z\s\.\'-]+$").hasMatch(name)) {
+                          return 'Enter a valid name (letters only)';
+                        }
+                        if (name.length < 3) return 'Name must be at least 3 characters';
+                        return null;
+                      },
                     ).animate().fade(duration: 350.ms, delay: 70.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
                     const SizedBox(height: 16),
 
                     // Student ID
                     TextFormField(
                       controller: _studentIdController,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(30),
+                      ],
                       style: TextStyle(color: isDark ? Colors.white : Colors.black),
                       decoration: const InputDecoration(
                         labelText: 'Student ID',
+                        hintText: 'e.g. 2023-SE-123',
                         prefixIcon: Icon(Icons.badge_outlined),
                       ),
-                      validator: (val) =>
-                          val == null || val.trim().isEmpty ? 'Enter Student ID' : null,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) return 'Enter Student ID';
+                        if (val.trim().length < 3) return 'Enter a valid Student ID';
+                        return null;
+                      },
                     ).animate().fade(duration: 350.ms, delay: 110.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
                     const SizedBox(height: 16),
 
@@ -200,13 +221,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(color: isDark ? Colors.white : Colors.black),
                       decoration: const InputDecoration(
                         labelText: 'Email Address',
+                        hintText: 'e.g. student@da.edu.pk',
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
                       validator: (val) {
-                        if (val == null || val.trim().isEmpty) return 'Enter email';
-                        if (!val.contains('@')) return 'Enter a valid email';
+                        if (val == null || val.trim().isEmpty) return 'Enter email address';
+                        final email = val.trim();
+                        final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$');
+                        if (!emailRegex.hasMatch(email)) return 'Enter a valid email address';
 
-                        String email = val.trim();
                         bool isOfficialDomain = email.endsWith('@da.edu.pk');
                         List<String> allowedTestEmails = ['shahzaib.safdar.ch@gmail.com'];
                         bool isTestEmail = allowedTestEmails.contains(email);
@@ -225,13 +248,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(11),
+                      ],
                       style: TextStyle(color: isDark ? Colors.white : Colors.black),
                       decoration: const InputDecoration(
                         labelText: 'Phone Number',
+                        hintText: 'e.g. 03001234567 (11 digits)',
                         prefixIcon: Icon(Icons.phone_outlined),
                       ),
-                      validator: (val) =>
-                          val == null || val.trim().isEmpty ? 'Enter phone number' : null,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) return 'Enter phone number';
+                        final phone = val.trim();
+                        if (RegExp(r'[a-zA-Z]').hasMatch(phone)) return 'Phone number must not contain alphabets';
+                        if (!RegExp(r'^\d+$').hasMatch(phone)) return 'Phone number must contain only numbers';
+                        if (phone.length != 11) {
+                          return 'Phone number must be exactly 11 digits (e.g. 03001234567)';
+                        }
+                        return null;
+                      },
                     ).animate().fade(duration: 350.ms, delay: 270.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic),
                     const SizedBox(height: 16),
 

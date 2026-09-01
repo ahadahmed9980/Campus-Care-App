@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../data/models/campus_models.dart';
 import '../data/repositories/campus_repositories.dart';
@@ -9,10 +10,14 @@ class CampusInfoController extends GetxController {
   final isLoading = false.obs;
   final errorMsg = RxnString();
   final searchQuery = ''.obs;
+  final searchController = TextEditingController();
 
   @override
   void onInit() {
     super.onInit();
+    searchController.addListener(() {
+      searchQuery.value = searchController.text;
+    });
     fetchCampusInfo();
   }
 
@@ -29,6 +34,11 @@ class CampusInfoController extends GetxController {
     }
   }
 
+  void clearSearch() {
+    searchController.clear();
+    searchQuery.value = '';
+  }
+
   List<CampusInfo> get filteredItems {
     final query = searchQuery.value.trim().toLowerCase();
     if (query.isEmpty) {
@@ -41,5 +51,11 @@ class CampusInfoController extends GetxController {
       final locMatch = item.location.formatted.toLowerCase().contains(query);
       return titleMatch || descMatch || categoryMatch || locMatch;
     }).toList();
+  }
+
+  @override
+  void onClose() {
+    searchController.dispose();
+    super.onClose();
   }
 }

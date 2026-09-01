@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -342,15 +343,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     // Full Name
                     TextFormField(
                       controller: _nameController,
+                      textCapitalization: TextCapitalization.words,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z\s\.\'-]")),
+                        LengthLimitingTextInputFormatter(50),
+                      ],
                       style: TextStyle(
                         color: isDark ? AppColors.darkTextDark : AppColors.textDark,
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Full Name',
+                        hintText: 'e.g. Ali Ahmed',
                         prefixIcon: Icon(Icons.person_outline),
                       ),
-                      validator: (val) =>
-                          val == null || val.trim().isEmpty ? 'Enter full name' : null,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) return 'Enter full name';
+                        final name = val.trim();
+                        if (RegExp(r'[0-9]').hasMatch(name)) return 'Name must not contain numbers';
+                        if (!RegExp(r"^[a-zA-Z\s\.\'-]+$").hasMatch(name)) {
+                          return 'Enter a valid name (letters only)';
+                        }
+                        if (name.length < 3) return 'Name must be at least 3 characters';
+                        return null;
+                      },
                     ).animate().fade(duration: 350.ms, delay: 50.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
                     const SizedBox(height: 16),
 
@@ -424,15 +439,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(11),
+                      ],
                       style: TextStyle(
                         color: isDark ? AppColors.darkTextDark : AppColors.textDark,
                       ),
                       decoration: const InputDecoration(
                         labelText: 'Phone Number',
+                        hintText: 'e.g. 03001234567 (11 digits)',
                         prefixIcon: Icon(Icons.phone_outlined),
                       ),
-                      validator: (val) =>
-                          val == null || val.trim().isEmpty ? 'Enter phone number' : null,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) return 'Enter phone number';
+                        final phone = val.trim();
+                        if (RegExp(r'[a-zA-Z]').hasMatch(phone)) return 'Phone number must not contain alphabets';
+                        if (!RegExp(r'^\d+$').hasMatch(phone)) return 'Phone number must contain only numbers';
+                        if (phone.length != 11) {
+                          return 'Phone number must be exactly 11 digits (e.g. 03001234567)';
+                        }
+                        return null;
+                      },
                     ).animate().fade(duration: 350.ms, delay: 200.ms).slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuad),
                     const SizedBox(height: 32),
 

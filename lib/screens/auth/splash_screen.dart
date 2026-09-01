@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../routes/app_routes.dart';
 import '../../theme/app_theme.dart';
@@ -17,30 +16,33 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2), () {
+    _timer = Timer(const Duration(seconds: 2), () {
       if (!mounted) return;
       _navigateNext();
     });
   }
 
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   Future<void> _navigateNext() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      // User is logged in, navigate straight to AuthWrapper (Home wrapper)
-      Get.offNamed(AppRoutes.authWrapper);
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final hasSeenGetStarted = prefs.getBool('hasSeenGetStarted') ?? false;
-
-    if (hasSeenGetStarted) {
-      Get.offNamed(AppRoutes.authWrapper);
-    } else {
-      Get.offNamed(AppRoutes.getStarted);
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        Get.offNamed(AppRoutes.home);
+      } else {
+        Get.offNamed(AppRoutes.login);
+      }
+    } catch (e) {
+      Get.offNamed(AppRoutes.login);
     }
   }
 
@@ -69,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
               child: Image.asset(
                 'assets/images/logo.png',
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
+                errorBuilder: (context, error, stackTrace) => const Icon(
                   Icons.school_rounded,
                   size: 50,
                   color: AppColors.primary,

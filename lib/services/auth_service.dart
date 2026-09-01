@@ -39,8 +39,18 @@ class AuthService {
   // ── 1.1 Google Sign-In Method with Domain Restriction & Test Email Whitelist ──
   Future<User?> signInWithGoogle() async {
     try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        serverClientId:
+            '543995537068-6u20v33buk9uvdhv96eohljshr7ttp96.apps.googleusercontent.com',
+      );
+
+      // Reset any existing sign-in session so the account chooser dialog is always shown
+      try {
+        await googleSignIn.signOut();
+      } catch (_) {}
+
       // 1. Trigger the Google Sign In flow
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         return null; // User canceled sign-in
       }
@@ -65,15 +75,15 @@ class AuthService {
       if (user != null && user.email != null) {
         bool isOfficialDomain = user.email!.endsWith('@da.edu.pk');
 
-        // Aapki allowed test emails ki list
+        // Allowed test emails list
         List<String> allowedTestEmails = ['shahzaib.safdar.ch@gmail.com'];
 
         bool isTestEmail = allowedTestEmails.contains(user.email);
 
-        // Agar official domain nahi hai, test email bhi nahi hai, aur app debug mode mein bhi nahi hai tab access deny karein
+        // Deny access only in release mode if not official domain and not test email
         if (!isOfficialDomain && !isTestEmail && !kDebugMode) {
           await _auth.signOut();
-          await GoogleSignIn().signOut();
+          await googleSignIn.signOut();
           throw 'Access denied. Please use your official university email (@da.edu.pk).';
         }
 
@@ -97,9 +107,17 @@ class AuthService {
       }
 
       return user;
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (e, stack) {
+      debugPrint('FirebaseAuthException in signInWithGoogle: ${e.code} - ${e.message}');
+      debugPrint(stack.toString());
       throw e.message ?? 'Google Sign-In failed.';
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('Exception in signInWithGoogle: $e');
+      debugPrint(stack.toString());
+      if (e.toString().contains('ApiException: 10') ||
+          e.toString().contains('DEVELOPER_ERROR')) {
+        throw 'Google Sign-In Configuration Error (ApiException: 10). Please add your machine SHA-1 fingerprint to Firebase Console.';
+      }
       throw e.toString();
     }
   }

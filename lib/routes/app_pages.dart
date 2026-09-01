@@ -102,10 +102,7 @@ class AppPages {
       name: AppRoutes.requestHistory,
       page: () => const RequestHistoryScreen(),
     ),
-    GetPage(
-      name: AppRoutes.campusInfo,
-      page: () => const CampusInfoScreen(),
-    ),
+    GetPage(name: AppRoutes.campusInfo, page: () => const CampusInfoScreen()),
     GetPage(
       name: AppRoutes.campusInfoDetail,
       page: () => const CampusInfoDetailScreen(),
